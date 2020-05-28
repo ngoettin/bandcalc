@@ -92,3 +92,15 @@ def plot_k_path(ax, path, *plotargs, **plotkargs):
 
     ax.plot(path[:,0], path[:,1], *plotargs, **plotkargs)
 
+def plot_k_path_3d(ax, path, *plotargs, **plotkargs):
+    """
+    Plot k path on an axis
+
+    :param ax: matplotlib axis
+    :param path: path to plot
+
+    :type ax: matplotlib.axes.Axes
+    :type path: numpy.ndarray
+    """
+
+    ax.plot(path[:,0], path[:,1], path[:,2], *plotargs, **plotkargs)
