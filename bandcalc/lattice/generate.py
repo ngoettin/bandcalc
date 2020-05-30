@@ -68,6 +68,47 @@ def generate_lattice_by_shell(lattice_basis, shell):
             del ordered_lattice[key]
     return np.vstack(list(ordered_lattice.values()))
 
+def generate_rotation_matrix(angle, degrees=True):
+    """
+    Generate a 2D rotation matrix for given *angle*
+
+    :param angle: the angle to rotate by
+    :param degrees: if angle is given in degrees or not (radians)
+
+    :type angle: float
+    :type degrees: bool
+
+    :rtype: numpy.ndarray
+    """
+
+    if degrees:
+        angle *= np.pi/180
+    return np.array([[np.cos(angle), -np.sin(angle)],
+        [np.sin(angle), np.cos(angle)]])
+
+def generate_moire_lattice_by_shell(lattice_basis1, lattice_basis2, twist_angle, shell):
+    """
+    Generate a twisted moire lattice from two sets of basis vectors
+
+    :param lattice_basis1: lattice basis of first lattice
+    :param lattice_basis2: lattice basis of second lattice
+    :param twist_angle: twis angle
+    :shell: number of shells to calculate
+
+    :type lattice_basis1: numpy.ndarray
+    :type lattice_basis2: numpy.ndarray
+    :type twist_angle: float
+    :type shell: int
+
+    :rtype: numpy.ndarray
+    """
+
+    r_matrix = generate_rotation_matrix(twist_angle)
+    lattice1 = generate_lattice_by_shell(lattice_basis1, shell)
+    lattice2 = generate_lattice_by_shell(lattice_basis2, shell)
+    lattice2 = np.matmul(r_matrix, lattice2.T)
+    return np.stack([lattice1, lattice2.T])
+
 def generate_k_path(points, N):
     """
     Interpolate between *points* with *N* steps
