@@ -86,13 +86,32 @@ def generate_rotation_matrix(angle, degrees=True):
     return np.array([[np.cos(angle), -np.sin(angle)],
         [np.sin(angle), np.cos(angle)]])
 
+def rotate_lattice(lattice, angle, degrees=True):
+    """
+    Rotate a 2D lattice by *angle*
+
+    :param lattice: lattice to rotate
+    :param angle: the angle to rotate by
+    :param degrees: if angle is given in degrees or not (radians)
+
+    :type lattice: numpy.ndarray
+    :type angle: float
+    :type degrees: bool
+
+    :rtype: numpy.ndarray
+    """
+
+    rotation_matrix = generate_rotation_matrix(angle)
+    rotated_lattice = np.matmul(rotation_matrix, lattice.T).T
+    return rotated_lattice
+
 def generate_moire_lattice_by_shell(lattice_basis1, lattice_basis2, twist_angle, shell):
     """
     Generate a twisted moire lattice from two sets of basis vectors
 
     :param lattice_basis1: lattice basis of first lattice
     :param lattice_basis2: lattice basis of second lattice
-    :param twist_angle: twis angle
+    :param twist_angle: twist angle
     :shell: number of shells to calculate
 
     :type lattice_basis1: numpy.ndarray
@@ -103,11 +122,10 @@ def generate_moire_lattice_by_shell(lattice_basis1, lattice_basis2, twist_angle,
     :rtype: numpy.ndarray
     """
 
-    r_matrix = generate_rotation_matrix(twist_angle)
     lattice1 = generate_lattice_by_shell(lattice_basis1, shell)
     lattice2 = generate_lattice_by_shell(lattice_basis2, shell)
-    lattice2 = np.matmul(r_matrix, lattice2.T)
-    return np.stack([lattice1, lattice2.T])
+    lattice2 = rotate_lattice(lattice2, twist_angle)
+    return np.stack([lattice1, lattice2])
 
 def generate_k_path(points, N):
     """
