@@ -110,7 +110,7 @@ def generate_moire_lattice_by_shell(lattice_basis1, lattice_basis2, twist_angle,
     :param lattice_basis1: lattice basis of first lattice
     :param lattice_basis2: lattice basis of second lattice
     :param twist_angle: twist angle
-    :shell: number of shells to calculate
+    :param shell: number of shells to calculate
 
     :type lattice_basis1: numpy.ndarray
     :type lattice_basis2: numpy.ndarray

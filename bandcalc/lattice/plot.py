@@ -99,7 +99,7 @@ def plot_k_path_3d(ax, path, *plotargs, **plotkargs):
     :param ax: matplotlib axis
     :param path: path to plot
 
-    :type ax: matplotlib.axes.Axes
+    :type ax: mpl_toolkits.mplot3d.axes3d.Axes3D
     :type path: numpy.ndarray
     """
 

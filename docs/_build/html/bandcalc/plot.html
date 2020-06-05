@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>plot &#8212; bandcalc 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="generate" href="generate.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="generate.html" title="generate"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">bandcalc 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">bandcalc</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-bandcalc.lattice.plot">
+<span id="plot"></span><h1>plot<a class="headerlink" href="#module-bandcalc.lattice.plot" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="bandcalc.lattice.plot.plot_bandstructure">
+<code class="sig-prename descclassname">bandcalc.lattice.plot.</code><code class="sig-name descname">plot_bandstructure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">bandstructure</span></em>, <em class="sig-param"><span class="n">k_point_names</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">plotargs</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">plotkargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.plot.plot_bandstructure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot band structure on an axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – matplotlib axis</p></li>
+<li><p><strong>bandstructure</strong> (<em>numpy.ndarray</em>) – bandstructure to plot</p></li>
+<li><p><strong>k_point_names</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – names of the k points</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.plot.plot_k_path">
+<code class="sig-prename descclassname">bandcalc.lattice.plot.</code><code class="sig-name descname">plot_k_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">plotargs</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">plotkargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.plot.plot_k_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot k path on an axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – matplotlib axis</p></li>
+<li><p><strong>path</strong> (<em>numpy.ndarray</em>) – path to plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.plot.plot_k_path_3d">
+<code class="sig-prename descclassname">bandcalc.lattice.plot.</code><code class="sig-name descname">plot_k_path_3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">plotargs</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">plotkargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.plot.plot_k_path_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot k path on an axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>mpl_toolkits.mplot3d.axes3d.Axes3D</em>) – matplotlib axis</p></li>
+<li><p><strong>path</strong> (<em>numpy.ndarray</em>) – path to plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.plot.plot_lattice">
+<code class="sig-prename descclassname">bandcalc.lattice.plot.</code><code class="sig-name descname">plot_lattice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">lattice</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">plotargs</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">plotkargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.plot.plot_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot lattice on an axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – matplotlib axis</p></li>
+<li><p><strong>lattice</strong> (<em>numpy.ndarray</em>) – lattice to plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.plot.plot_lattice_3d">
+<code class="sig-prename descclassname">bandcalc.lattice.plot.</code><code class="sig-name descname">plot_lattice_3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">lattice</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">plotargs</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">plotkargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.plot.plot_lattice_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot lattice on an axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>mpl_toolkits.mplot3d.axes3d.Axes3D</em>) – matplotlib axis</p></li>
+<li><p><strong>lattice</strong> (<em>numpy.ndarray</em>) – lattice to plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.plot.set_axes_equal">
+<code class="sig-prename descclassname">bandcalc.lattice.plot.</code><code class="sig-name descname">set_axes_equal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.plot.set_axes_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make axes of 3D plot have equal scale so that spheres appear as spheres,
+cubes as cubes, etc..  This is one possible solution to Matplotlib’s
+ax.set_aspect(‘equal’) and ax.axis(‘equal’) not working for 3D.</p>
+<dl class="simple">
+<dt>Input</dt><dd><p>ax: a matplotlib axis, e.g., as output from plt.gca().</p>
+</dd>
+</dl>
+<p>Source: <a class="reference external" href="https://stackoverflow.com/a/31364297">https://stackoverflow.com/a/31364297</a></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="generate.html"
+                        title="previous chapter">generate</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/bandcalc/plot.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="generate.html" title="generate"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">bandcalc 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >bandcalc</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Niclas Götting.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.4.
+    </div>
+  </body>
+</html>

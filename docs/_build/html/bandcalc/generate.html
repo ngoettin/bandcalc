@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>generate &#8212; bandcalc 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pyramid.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="plot" href="plot.html" />
+    <link rel="prev" title="calc" href="calc.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plot.html" title="plot"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="calc.html" title="calc"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">bandcalc 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">bandcalc</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-bandcalc.lattice.generate">
+<span id="generate"></span><h1>generate<a class="headerlink" href="#module-bandcalc.lattice.generate" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.generate_k_path">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">generate_k_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span></em>, <em class="sig-param"><span class="n">N</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.generate_k_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate between <em>points</em> with <em>N</em> steps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> (<em>numpy.ndarray</em>) – points to interpolate between</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – sample number</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.generate_lattice">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">generate_lattice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice_basis</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.generate_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine lattice basis vectors <em>size</em> times to generate a lattice</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lattice_basis</strong> (<em>numpy.ndarray</em>) – basis vectors of the lattice</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – maximum coefficient size</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.generate_lattice_by_shell">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">generate_lattice_by_shell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice_basis</span></em>, <em class="sig-param"><span class="n">shell</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.generate_lattice_by_shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate lattice from basis vectors with <em>shell</em> shells around the zero vector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lattice_basis</strong> (<em>numpy.ndarray</em>) – basis vectors of the lattice</p></li>
+<li><p><strong>shell</strong> (<em>int</em>) – number of shells</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.generate_moire_lattice_by_shell">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">generate_moire_lattice_by_shell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice_basis1</span></em>, <em class="sig-param"><span class="n">lattice_basis2</span></em>, <em class="sig-param"><span class="n">twist_angle</span></em>, <em class="sig-param"><span class="n">shell</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.generate_moire_lattice_by_shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a twisted moire lattice from two sets of basis vectors</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lattice_basis1</strong> (<em>numpy.ndarray</em>) – lattice basis of first lattice</p></li>
+<li><p><strong>lattice_basis2</strong> (<em>numpy.ndarray</em>) – lattice basis of second lattice</p></li>
+<li><p><strong>twist_angle</strong> (<em>float</em>) – twist angle</p></li>
+<li><p><strong>shell</strong> (<em>int</em>) – number of shells to calculate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.generate_monkhorst_pack_set">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">generate_monkhorst_pack_set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice_basis</span></em>, <em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.generate_monkhorst_pack_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a folded Monkhorst-Pack set, which only fills the first
+Brillouin zone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lattice_basis</strong> (<em>numpy.ndarray</em>) – lattice basis</p></li>
+<li><p><strong>q</strong> (<em>int</em>) – lattice density (see the <a class="reference external" href="https://journals.aps.org/prb/pdf/10.1103/PhysRevB.13.5188">original paper</a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.generate_rotation_matrix">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">generate_rotation_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">angle</span></em>, <em class="sig-param"><span class="n">degrees</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.generate_rotation_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a 2D rotation matrix for given <em>angle</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>angle</strong> (<em>float</em>) – the angle to rotate by</p></li>
+<li><p><strong>degrees</strong> (<em>bool</em>) – if angle is given in degrees or not (radians)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.group_lattice_vectors_by_length">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">group_lattice_vectors_by_length</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.group_lattice_vectors_by_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group an array of vectors by length</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>lattice</strong> (<em>numpy.ndarray</em>) – vectors to group</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict[float, numpy.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="bandcalc.lattice.generate.rotate_lattice">
+<code class="sig-prename descclassname">bandcalc.lattice.generate.</code><code class="sig-name descname">rotate_lattice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lattice</span></em>, <em class="sig-param"><span class="n">angle</span></em>, <em class="sig-param"><span class="n">degrees</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bandcalc.lattice.generate.rotate_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a 2D lattice by <em>angle</em></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lattice</strong> (<em>numpy.ndarray</em>) – lattice to rotate</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – the angle to rotate by</p></li>
+<li><p><strong>degrees</strong> (<em>bool</em>) – if angle is given in degrees or not (radians)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="calc.html"
+                        title="previous chapter">calc</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plot.html"
+                        title="next chapter">plot</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/bandcalc/generate.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plot.html" title="plot"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="calc.html" title="calc"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">bandcalc 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >bandcalc</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Niclas Götting.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.4.
+    </div>
+  </body>
+</html>
