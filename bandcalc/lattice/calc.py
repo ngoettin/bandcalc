@@ -4,7 +4,7 @@ from .generate import generate_k_path
 
 hbar = 1
 m = 1
-V = 1
+V = 0
 
 def eps_0(k, G):
     """

@@ -6,7 +6,6 @@ import bandcalc
 
 # Constants
 a = 1
-V = 1
 N = 1000
 
 # Reciprocal lattice vectors
