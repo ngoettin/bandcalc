@@ -1,8 +1,9 @@
 import itertools
+import collections
 
 import numpy as np
-
 import scipy.interpolate
+import scipy.spatial
 
 def group_lattice_vectors_by_length(lattice):
     """
@@ -16,13 +17,10 @@ def group_lattice_vectors_by_length(lattice):
     """
 
     lattice = np.array(sorted(lattice, key=lambda vec: np.dot(vec, vec)))
-    ordered_lattice = {}
+    ordered_lattice = collections.defaultdict(list)
     for vec in lattice:
         length = np.round(np.dot(vec, vec), 2)
-        try:
-            ordered_lattice[length].append(vec)
-        except KeyError:
-            ordered_lattice[length] = [vec]
+        ordered_lattice[length].append(vec)
     ordered_lattice = {k: np.array(v) for k,v in ordered_lattice.items()}
     return ordered_lattice
 
@@ -143,4 +141,61 @@ def generate_k_path(points, N):
     num_points = len(points)
     path = scipy.interpolate.griddata(np.arange(num_points), points, np.linspace(0, num_points-1, N))
     return path
+
+def _generate_monkhorst_pack_raw(lattice_basis, q):
+    """
+    Generate a Monkhorst-Pack set naively, which expands into neighbouring
+    Brillouin zones. Refer to :py:func:`generate_monkhorst_pack_set` for 
+    the folded Monkhorst-Pack set.
+
+    :param lattice_basis: lattice basis
+    :param q: lattice density (see the `original paper <https://journals.aps.org/prb/pdf/10.1103/PhysRevB.13.5188>`_)
+
+    :type lattice_basis: numpy.ndarray
+    :type q: int
+
+    :rtype: numpy.ndarray
+    """
+
+    dimension = len(lattice_basis)
+    p = np.arange(1, q+1)
+    n = (2*p-q-1) / (2*q)
+    combinations = np.array(list(itertools.product(n, repeat=dimension)))
+    raw_monkhorst_pack_set = np.matmul(lattice_basis.T, combinations.T).T
+    return raw_monkhorst_pack_set
+
+def generate_monkhorst_pack_set(lattice_basis, q):
+    """
+    Generate a folded Monkhorst-Pack set, which only fills the first
+    Brillouin zone.
+    
+    :param lattice_basis: lattice basis
+    :param q: lattice density (see the `original paper <https://journals.aps.org/prb/pdf/10.1103/PhysRevB.13.5188>`_)
+
+    :type lattice_basis: numpy.ndarray
+    :type q: int
+
+    :rtype: numpy.ndarray
+    """
+
+    raw_monkhorst_pack_set = _generate_monkhorst_pack_raw(lattice_basis, q)
+    lattice_1bz = generate_lattice_by_shell(lattice_basis, 1)
+    tree = scipy.spatial.KDTree(lattice_1bz)
+
+    # find nearest neighbour lattice vector for each k vector of
+    # the Monkhorst-Pack set
+    k_positions = np.stack(tree.query(raw_monkhorst_pack_set))
+    position_dict = collections.defaultdict(list)
+    for neighbour, k_vector in zip(k_positions[1], raw_monkhorst_pack_set):
+        position_dict[neighbour].append(k_vector)
+
+    # Shift all points back to first Brillouin zone
+    monkhorst_pack_set = np.vstack([position_dict[neighbour]-tree.data[int(neighbour)]
+        for neighbour in position_dict.keys()])
+    return monkhorst_pack_set
+
+
+
+
+
 
