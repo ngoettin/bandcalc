@@ -42,6 +42,32 @@ def generate_lattice(lattice_basis, size):
     lattice = np.matmul(lattice_basis.T, combinations.T)
     return lattice.T
 
+def generate_reciprocal_lattice_basis(lattice_basis):
+    """
+    Generate the reciprocal lattice basis of a given basis.
+
+    :param lattice_basis: lattice basis to transform
+
+    :type lattice_basis: numpy.ndarray
+
+    :rtype: numpy.ndarray
+    """
+
+    if lattice_basis.shape not in [(2,2), (3,3)]:
+        raise ValueError("basis vector array has to be quadratic and either 2D or 3D")
+    if lattice_basis.shape == (2,2):
+        lattice_basis = np.pad(lattice_basis, ((0,1),(0,1)))
+        lattice_basis[-1, -1] = 1
+        two_dimensional = True
+    volume_primitive_unit_cell = np.abs(np.dot(lattice_basis[0],
+        np.cross(lattice_basis[1], lattice_basis[2])))
+    reciprocal_lattice_basis = np.array([
+        np.cross(lattice_basis[1], lattice_basis[2]),
+        np.cross(lattice_basis[2], lattice_basis[0]),
+        np.cross(lattice_basis[0], lattice_basis[1]),
+        ])*2*np.pi/volume_primitive_unit_cell
+    return reciprocal_lattice_basis[:2, :2] if two_dimensional else reciprocal_lattice_basis
+
 def generate_lattice_by_shell(lattice_basis, shell):
     """
     Generate lattice from basis vectors with *shell* shells around the zero vector
