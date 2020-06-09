@@ -1,5 +1,0 @@
-bandcalc
-========
-
-.. automodule:: bandcalc.lattice.generate
-   :members:
