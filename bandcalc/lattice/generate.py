@@ -188,7 +188,10 @@ def _generate_monkhorst_pack_raw(lattice_basis, q):
     n = (2*p-q-1) / (2*q)
     combinations = np.array(list(itertools.product(n, repeat=dimension)))
     raw_monkhorst_pack_set = np.matmul(lattice_basis.T, combinations.T).T
-    return raw_monkhorst_pack_set
+
+    lengths = np.sum(raw_monkhorst_pack_set**2, axis=1)
+    shift = raw_monkhorst_pack_set[np.argmin(lengths)]
+    return raw_monkhorst_pack_set - shift
 
 def generate_monkhorst_pack_set(lattice_basis, q):
     """
