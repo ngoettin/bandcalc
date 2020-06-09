@@ -104,3 +104,19 @@ def plot_k_path_3d(ax, path, *plotargs, **plotkargs):
     """
 
     ax.plot(path[:,0], path[:,1], path[:,2], *plotargs, **plotkargs)
+
+def plot_moire_potential(ax, grid, moire_potential, *plotargs, **plotkargs):
+    """
+    Plot a moire potential on a regular grid
+
+    :param ax: matplotlib axis
+    :param grid: grid to plot on
+    :param moire_potential: moire potential
+
+    :type ax: matplotlib.axes.Axes
+    :type grid: numpy.ndarray
+    :type moire_potential: numpy.ndarray
+    """
+
+    ax.contourf(grid[0], grid[1], moire_potential, *plotargs, **plotkargs)
+    ax.axis("equal")
