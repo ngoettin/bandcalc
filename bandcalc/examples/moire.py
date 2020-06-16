@@ -33,6 +33,9 @@ GT = G[0,1:]
 GB = G[1,1:]
 GM = GT-GB
 
+# Sort the reciprocal moire vectors by length to get the phase right
+GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
+
 # Real space grid
 size = np.linspace(-10, 10, 100)
 grid = np.meshgrid(size, size)
