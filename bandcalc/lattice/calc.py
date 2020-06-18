@@ -62,7 +62,7 @@ def calc_bandstructure(k_points, lattice, N):
     eig_vals = np.array([np.linalg.eigvals(matrix(k, lattice)) for k in path])
     return eig_vals
 
-def calc_moire_potential(grid, moire_lattice, potential_coeffs):
+def calc_moire_potential_on_grid(grid, reciprocal_moire_lattice, potential_coeffs):
     r"""
     Calculate the moire potential on a regular grid using
 
@@ -80,9 +80,30 @@ def calc_moire_potential(grid, moire_lattice, potential_coeffs):
     """
 
     moire_potential = np.sum(np.exp(1j*(
-        np.tensordot(moire_lattice[:,0], grid[0], axes=0)+
-        np.tensordot(moire_lattice[:,1], grid[1], axes=0)
+        np.tensordot(reciprocal_moire_lattice[:,0], grid[0], axes=0)+
+        np.tensordot(reciprocal_moire_lattice[:,1], grid[1], axes=0)
         ))*potential_coeffs[:, None, None], axis=0)
     return moire_potential
 
+def calc_moire_potential(r, reciprocal_moire_lattice, potential_coeffs):
+    r"""
+    Calculate the moire potential on a set of points using
 
+    :math:`V^{\text{M}}(\vec{r}) \approx \sum_{j=1}^6 V_j \exp\left(\text{i}\vec{G}_j^{\text{M}}\vec{r}\right)`
+
+    :param r: :math:`\vec{r}`, set of points
+    :param moire_lattice: :math:`\vec{G}_j^{\text{M}}`, the six moire lattice vectors
+    :param potential_coeffs: :math:`V_j`, the coefficients for the potential
+
+    :type r: numpy.ndarray
+    :type moire_lattice: numpy.ndarray
+    :type potential_coeffs: numpy.ndarray
+
+    :rtype: numpy.ndarray
+    """
+
+    moire_potential = np.sum(np.exp(1j*(
+        np.tensordot(reciprocal_moire_lattice[:,0], r[:,0], axes=0)+
+        np.tensordot(reciprocal_moire_lattice[:,1], r[:,1], axes=0)
+        ))*potential_coeffs[:, None], axis=0)
+    return moire_potential

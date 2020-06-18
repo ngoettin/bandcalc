@@ -43,7 +43,7 @@ grid = np.meshgrid(size, size)
 # Results
 fig, ax = plt.subplots()
 
-moire_potential = bandcalc.calc_moire_potential(grid, GM, Vj)
+moire_potential = bandcalc.calc_moire_potential_on_grid(grid, GM, Vj)
 bandcalc.plot_moire_potential(ax, grid, moire_potential, alpha=0.4)
 
 twisted_lattice = bandcalc.generate_moire_lattice_by_shell(a, a, angle, 15)
