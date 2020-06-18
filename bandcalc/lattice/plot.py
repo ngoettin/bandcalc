@@ -43,8 +43,9 @@ def plot_lattice(ax, lattice, *plotargs, **plotkargs):
     :type lattice: numpy.ndarray
     """
 
-    ax.plot(lattice[:,0], lattice[:,1], *plotargs, **plotkargs)
+    mpl_obj = ax.plot(lattice[:,0], lattice[:,1], *plotargs, **plotkargs)
     ax.axis("equal")
+    return mpl_obj
 
 def plot_lattice_3d(ax, lattice, *plotargs, **plotkargs):
     """
@@ -57,8 +58,8 @@ def plot_lattice_3d(ax, lattice, *plotargs, **plotkargs):
     :type lattice: numpy.ndarray
     """
 
-    ax.scatter(lattice[:,0], lattice[:,1], lattice[:,2], *plotargs, **plotkargs)
-#    ax.axis("equal")
+    mpl_obj = ax.scatter(lattice[:,0], lattice[:,1], lattice[:,2], *plotargs, **plotkargs)
+    return mpl_obj
 
 def plot_bandstructure(ax, bandstructure, k_point_names, *plotargs, **plotkargs):
     """
@@ -73,11 +74,12 @@ def plot_bandstructure(ax, bandstructure, k_point_names, *plotargs, **plotkargs)
     :type k_point_names: list[str]
     """
 
-    ax.plot(np.sort(bandstructure), *plotargs, **plotkargs)
+    mpl_obj = ax.plot(np.sort(bandstructure), *plotargs, **plotkargs)
     num_points = len(k_point_names)
     N = bandstructure.shape[0]
     ax.set_xticks([i*N/(num_points-1) for i in range(num_points)])
     ax.set_xticklabels(k_point_names)
+    return mpl_obj
 
 def plot_k_path(ax, path, *plotargs, **plotkargs):
     """
@@ -90,7 +92,8 @@ def plot_k_path(ax, path, *plotargs, **plotkargs):
     :type path: numpy.ndarray
     """
 
-    ax.plot(path[:,0], path[:,1], *plotargs, **plotkargs)
+    mpl_obj = ax.plot(path[:,0], path[:,1], *plotargs, **plotkargs)
+    return mpl_obj
 
 def plot_k_path_3d(ax, path, *plotargs, **plotkargs):
     """
@@ -103,7 +106,8 @@ def plot_k_path_3d(ax, path, *plotargs, **plotkargs):
     :type path: numpy.ndarray
     """
 
-    ax.plot(path[:,0], path[:,1], path[:,2], *plotargs, **plotkargs)
+    mpl_obj = ax.plot(path[:,0], path[:,1], path[:,2], *plotargs, **plotkargs)
+    return mpl_obj
 
 def plot_moire_potential(ax, grid, moire_potential, *plotargs, **plotkargs):
     """
@@ -118,5 +122,7 @@ def plot_moire_potential(ax, grid, moire_potential, *plotargs, **plotkargs):
     :type moire_potential: numpy.ndarray
     """
 
-    ax.contourf(grid[0], grid[1], moire_potential, *plotargs, **plotkargs)
+    mpl_obj = ax.contourf(grid[0], grid[1], moire_potential, *plotargs, **plotkargs)
     ax.axis("equal")
+    return mpl_obj
+
