@@ -1,6 +1,12 @@
 # band-calc
 Calculate and plot band structures for different lattices
 
+## Build documentation
+
+ * `cd docs`
+ * `make html`
+ * `firefox _build/html/index.html` (or any other browser)
+
 ## Examples
 ```
 python -m bandcalc.examples.bandstructure.hexagonal
