@@ -10,7 +10,8 @@ def eps_0(k, G):
     r"""
     Calculate the unpertubated energy for given k vector and reciprocal lattice vector using
 
-    :math:`\varepsilon^{(0)}_{\vec{G}_0}(\vec{k}\,) = \frac{\hbar^2}{2m}\left(\vec{k} - \vec{G}_0\right)^2`
+    .. math::
+        \varepsilon^{(0)}_{\vec{G}_0}(\vec{k}\,) = \frac{\hbar^2}{2m}\left(\vec{k} - \vec{G}_0\right)^2
 
     :param k: k vector of the particle
     :param G: reciprocal lattice vector
@@ -66,7 +67,8 @@ def calc_moire_potential_on_grid(grid, reciprocal_moire_lattice, potential_coeff
     r"""
     Calculate the moire potential on a regular grid using
 
-    :math:`V^{\text{M}}(\vec{r}) \approx \sum_{j=1}^6 V_j \exp\left(\text{i}\vec{G}_j^{\text{M}}\vec{r}\right)`
+    .. math::
+        V^{\text{M}}(\vec{r}) \approx \sum_{j=1}^6 V_j \exp\left(\text{i}\vec{G}_j^{\text{M}}\vec{r}\right)
 
     :param grid: :math:`\vec{r}`, a numpy meshgrid to calculate the potential on
     :param moire_lattice: :math:`\vec{G}_j^{\text{M}}`, the six moire lattice vectors
@@ -89,7 +91,8 @@ def calc_moire_potential(r, reciprocal_moire_lattice, potential_coeffs):
     r"""
     Calculate the moire potential on a set of points using
 
-    :math:`V^{\text{M}}(\vec{r}) \approx \sum_{j=1}^6 V_j \exp\left(\text{i}\vec{G}_j^{\text{M}}\vec{r}\right)`
+    .. math::
+        V^{\text{M}}(\vec{r}) \approx \sum_{j=1}^6 V_j \exp\left(\text{i}\vec{G}_j^{\text{M}}\vec{r}\right)
 
     :param r: :math:`\vec{r}`, set of points
     :param moire_lattice: :math:`\vec{G}_j^{\text{M}}`, the six moire lattice vectors
@@ -107,3 +110,33 @@ def calc_moire_potential(r, reciprocal_moire_lattice, potential_coeffs):
         np.tensordot(reciprocal_moire_lattice[:,1], r[:,1], axes=0)
         ))*potential_coeffs[:, None], axis=0)
     return moire_potential
+
+def calc_moire_potential_reciprocal_on_grid(real_space_points, reciprocal_space_grid, moire_potential_pointwise):
+    r"""
+    Calculate the reciprocal moire potential on a grid using
+
+    .. math::
+        V^{\text{M}}_{G_{\text{M}}} = \frac{1}{A}\int_{\text{MWSC}}
+        V_{\text{M}}(\vec{r}\,)\text{e}^{-\text{i}G_{\text{M}}\vec{R}}\text{d}r^2
+
+    with MWSC being the first Moire Wigner Seitz cell.
+
+    :param real_space_points: Real space sample points in the MWSC (for example a Monkhorst-Pack grid)
+    :param reciprocal_space_grid: Grid of reciprocal vectors :math:`G_{\text{M}}`
+    :param moire_potential_pointwise: Pre-calculated real space Moire potential :math:`V^{\text{M}}(\vec{r}\,)`
+
+    :type real_space_points: numpy.ndarray
+    :type reciprocal_space_grid: numpy.ndarray
+    :type moire_potential_pointwise: numpy.ndarray
+
+    :rtype: numpy.ndarray
+    """
+
+    integrand = np.exp(
+            -1j*(
+                np.tensordot(real_space_points[:,0], reciprocal_space_grid[0], axes=0) + 
+                np.tensordot(real_space_points[:,1], reciprocal_space_grid[1], axes=0)
+            ))*moire_potential_pointwise[..., None, None]
+    integral = integrand.sum(axis=0)
+    return integral/len(real_space_points)
+
