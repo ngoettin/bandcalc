@@ -28,12 +28,12 @@ V = 12.4*np.exp(1j*81.5*np.pi/180)
 Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
 
 # Reciprocal moire lattice vectors
-G = bandcalc.generate_moire_lattice_by_shell(b, b, angle, 1)
+G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
 GT = G[0,1:]
 GB = G[1,1:]
 GM = GT-GB
 
-# Sort the reciprocal moire vectors by length to get the phase right
+# Sort the reciprocal moire vectors by angle to get the phase right
 GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
 
 # Real space grid
@@ -46,7 +46,7 @@ fig, ax = plt.subplots()
 moire_potential = bandcalc.calc_moire_potential_on_grid(grid, GM, Vj)
 contour = bandcalc.plot_moire_potential(ax, grid, moire_potential, alpha=0.4)
 
-twisted_lattice = bandcalc.generate_moire_lattice_by_shell(a, a, angle, 15)
+twisted_lattice = bandcalc.generate_twisted_lattice_by_shell(a, a, angle, 15)
 bandcalc.plot_lattice(ax, twisted_lattice[0], "r.")
 bandcalc.plot_lattice(ax, twisted_lattice[1], "b.")
 

@@ -129,7 +129,7 @@ def rotate_lattice(lattice, angle, degrees=True):
     rotated_lattice = np.matmul(rotation_matrix, lattice.T).T
     return rotated_lattice
 
-def generate_moire_lattice_by_shell(lattice_basis1, lattice_basis2, twist_angle, shell):
+def generate_twisted_lattice_by_shell(lattice_basis1, lattice_basis2, twist_angle, shell):
     """
     Generate a twisted moire lattice from two sets of basis vectors
 
