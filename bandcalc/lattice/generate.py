@@ -53,20 +53,8 @@ def generate_reciprocal_lattice_basis(lattice_basis):
     :rtype: numpy.ndarray
     """
 
-    if lattice_basis.shape not in [(2,2), (3,3)]:
-        raise ValueError("basis vector array has to be quadratic and either 2D or 3D")
-    if lattice_basis.shape == (2,2):
-        lattice_basis = np.pad(lattice_basis, ((0,1),(0,1)))
-        lattice_basis[-1, -1] = 1
-        two_dimensional = True
-    volume_primitive_unit_cell = np.abs(np.dot(lattice_basis[0],
-        np.cross(lattice_basis[1], lattice_basis[2])))
-    reciprocal_lattice_basis = np.array([
-        np.cross(lattice_basis[1], lattice_basis[2]),
-        np.cross(lattice_basis[2], lattice_basis[0]),
-        np.cross(lattice_basis[0], lattice_basis[1]),
-        ])*2*np.pi/volume_primitive_unit_cell
-    return reciprocal_lattice_basis[:2, :2] if two_dimensional else reciprocal_lattice_basis
+    return 2*np.pi*np.linalg.inv(lattice_basis.T)
+
 
 def generate_lattice_by_shell(lattice_basis, shell):
     """
