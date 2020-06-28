@@ -1,9 +1,12 @@
 import numpy as np
+import scipy.constants
 
 from .generate import generate_k_path
 
-hbar = 1
-m = 1
+hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]*1e18
+m_e = 0.42*scipy.constants.physical_constants["electron mass"][0]
+m_h = 0.34*scipy.constants.physical_constants["electron mass"][0]
+m = m_e+m_h
 V = 0
 
 def eps_0(k, G):
@@ -140,3 +143,31 @@ def calc_moire_potential_reciprocal_on_grid(real_space_points, reciprocal_space_
     integral = integrand.sum(axis=0)
     return integral/len(real_space_points)
 
+def calc_moire_potential_reciprocal(real_space_points, reciprocal_space_points, moire_potential_pointwise):
+    r"""
+    Calculate the reciprocal moire potential using
+
+    .. math::
+        V^{\text{M}}_{G_{\text{M}}} = \frac{1}{A}\int_{\text{MWSC}}
+        V_{\text{M}}(\vec{r}\,)\text{e}^{-\text{i}G_{\text{M}}\vec{R}}\text{d}r^2
+
+    with MWSC being the first Moire Wigner Seitz cell.
+
+    :param real_space_points: Real space sample points in the MWSC (for example a Monkhorst-Pack grid)
+    :param reciprocal_space_grid: Reciprocal vectors :math:`G_{\text{M}}`
+    :param moire_potential_pointwise: Pre-calculated real space Moire potential :math:`V^{\text{M}}(\vec{r}\,)`
+
+    :type real_space_points: numpy.ndarray
+    :type reciprocal_space_grid: numpy.ndarray
+    :type moire_potential_pointwise: numpy.ndarray
+
+    :rtype: numpy.ndarray
+    """
+
+    integrand = np.exp(
+            -1j*(
+                np.tensordot(real_space_points[:,0], reciprocal_space_points[:,0], axes=0) +
+                np.tensordot(real_space_points[:,1], reciprocal_space_points[:,1], axes=0)
+            ))*moire_potential_pointwise[..., None]
+    integral = integrand.sum(axis=0)
+    return integral/len(real_space_points)
