@@ -23,3 +23,7 @@ python -m bandcalc.examples.potential.moire_reciprocal
 ```
 ![image of moire potentials](example_images/moire_potential.png?raw=true)
 
+```
+python -m bandcalc.examples.bandstructure.moire_hexagonal --potential MoS2 --angle 3
+```
+![image of moire potentials](example_images/moire_bandstructure.png?raw=true)
