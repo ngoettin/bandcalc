@@ -11,12 +11,15 @@ from bandcalc.constants import lattice_constants
 parser = argparse.ArgumentParser(description="Calculate the Moire band structure")
 parser.add_argument("--potential", choices=["off", "MoS2"],
         default="off", help="choose the potential to calculate the band structure with")
-potential = parser.parse_args().potential
+parser.add_argument("--angle", type=float,
+        default=3, help="twist angle of the lattices in degrees")
+args = parser.parse_args()
+potential = args.potential
+angle = args.angle
 
 # Constants
 a = lattice_constants["MoS2"]*1e9
 N = 1000
-angle = 3
 
 # Reciprocal lattice vectors
 b1 = np.array([2*np.pi/(np.sqrt(3)*a), 2*np.pi/a])
@@ -61,10 +64,11 @@ rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, 1)
 
 # Calculate MBZ and choose some K-points for the k-path
 vor_m = Voronoi(rec_moire_lattice)
+sorted_vertices = np.array(sorted(vor_m.vertices, key=lambda x: np.abs(x.view(complex))))
 points = np.array([
-    vor_m.vertices[0],
+    sorted_vertices[0],
     [0, 0],
-    vor_m.vertices[1]])
+    sorted_vertices[1]])
 path = bandcalc.generate_k_path(points, N)
 k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 
@@ -82,7 +86,7 @@ axs[0].text(0.05, 0.95, f"{angle}°", transform=axs[0].transAxes, va="top", bbox
 axs[0].set_xlabel(r"nm")
 axs[0].set_ylabel(r"nm")
 
-bandcalc.plot_bandstructure(axs[1], bandstructure, k_names, "k")
+bandcalc.plot_bandstructure(axs[1], np.abs(bandstructure), k_names, "k")
 axs[1].set_ylabel(r"$E - \hbar\Omega_0$ in meV")
 
 plt.tight_layout()
