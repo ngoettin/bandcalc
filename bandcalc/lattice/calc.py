@@ -3,7 +3,8 @@ import scipy.constants
 
 from .generate import generate_k_path
 
-hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]*1e18
+hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]
+e = scipy.constants.physical_constants["elementary charge"][0]
 m_e = 0.42*scipy.constants.physical_constants["electron mass"][0]
 m_h = 0.34*scipy.constants.physical_constants["electron mass"][0]
 m = m_e+m_h
@@ -16,6 +17,8 @@ def eps_0(k, G):
     .. math::
         \varepsilon^{(0)}_{\vec{G}_0}(\vec{k}\,) = \frac{\hbar^2}{2m}\left(\vec{k} - \vec{G}_0\right)^2
 
+    Expects input vectors to be in units 1/nm.
+
     :param k: k vector of the particle
     :param G: reciprocal lattice vector
 
@@ -25,9 +28,9 @@ def eps_0(k, G):
     :rtype: float
     """
 
-    return hbar**2/(2*m)*np.sum((k-G)**2, axis=1)
+    return hbar**2/(2*m)*np.sum((k-G)**2, axis=1)*1e18
 
-def matrix(k, lattice):
+def calc_hamiltonian(k, lattice, potential_matrix):
     """
     Construct the hamiltonian for any given k in a specified lattice
 
@@ -40,14 +43,35 @@ def matrix(k, lattice):
     :rtype: numpy.ndarray
     """
 
-    N = len(lattice)
-    mat = np.ones((N, N))*V
-    diag = np.diag(eps_0(k, lattice))
-    np.fill_diagonal(mat, 0)
-    mat += diag
-    return mat
+    diagonal = np.diag(eps_0(k, lattice))*1e3/e
+    return potential_matrix + diagonal
 
-def calc_bandstructure(k_points, lattice, N):
+def calc_potential_matrix(lattice, potential_fun=None, *args):
+    """
+    Calculate matrix of potentials using *potential_fun*.
+
+    :param lattice: reciprocal lattice
+    :param potential_fun: function that calculates potential for a set of lattice vectors
+
+    :type lattice: numpy.ndarray
+    :type potential_fun: function
+
+    :rtype: numpy.ndarray
+    """
+
+    if potential_fun is None:
+        potential_fun = lambda x: np.sum(0*x, axis=1)
+
+    lattice_matrix = np.array(
+            [lattice - vec for vec in lattice]
+    )
+
+    potential_matrix = np.array(
+            [potential_fun(lattice, *args) for lattice in lattice_matrix]
+    )
+    return potential_matrix
+
+def calc_bandstructure(k_points, lattice, N, potential_fun=None, *args):
     """
     Calculate the band structure of a lattice along a given k path with N samples
 
@@ -62,8 +86,11 @@ def calc_bandstructure(k_points, lattice, N):
     :rtype: numpy.ndarray
     """
 
+    potential_matrix = calc_potential_matrix(lattice, potential_fun)
     path = generate_k_path(k_points, N)
-    eig_vals = np.array([np.linalg.eigvals(matrix(k, lattice)) for k in path])
+    eig_vals = np.array(
+            [np.linalg.eigvals(calc_hamiltonian(k, lattice, potential_matrix)) for k in path]
+    )
     return eig_vals
 
 def calc_moire_potential_on_grid(grid, reciprocal_moire_lattice, potential_coeffs):

@@ -1,3 +1,5 @@
+import argparse
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d #pylint: disable=E0611
@@ -5,6 +7,11 @@ from scipy.constants import physical_constants
 
 import bandcalc
 from bandcalc.constants import lattice_constants
+
+parser = argparse.ArgumentParser(description="Calculate the Moire band structure")
+parser.add_argument("--potential", choices=["off", "MoS2"],
+        default="off", help="choose the potential to calculate the band structure with")
+potential = parser.parse_args().potential
 
 # Constants
 a = lattice_constants["MoS2"]*1e9
@@ -25,17 +32,29 @@ rec_m = b-bandcalc.rotate_lattice(b, angle)
 # Real space moire lattice vectors
 m = bandcalc.generate_reciprocal_lattice_basis(rec_m)
 
-# Moire potential coefficients
-V = 12.4*np.exp(1j*81.5*np.pi/180)
-Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
-# Reciprocal moire lattice vectors
-G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
-GT = G[0,1:]
-GB = G[1,1:]
-GM = GT-GB
+if potential == "MoS2":
+    # Moire potential coefficients
+    V = 12.4*np.exp(1j*81.5*np.pi/180)
+    Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
+    # Reciprocal moire lattice vectors
+    G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
+    GT = G[0,1:]
+    GB = G[1,1:]
+    GM = GT-GB
 
-# Sort the reciprocal moire vectors by angle to get the phase right
-GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
+    # Sort the reciprocal moire vectors by angle to get the phase right
+    GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
+
+    # Generate a real space monkhorst pack lattice
+    mp_moire = bandcalc.generate_monkhorst_pack_set(m, 100)
+
+    # Calculate pointwise real space moire potential
+    moire_potential_pointwise = bandcalc.calc_moire_potential(mp_moire, GM, Vj)
+
+    potential_fun = lambda lat: bandcalc.calc_moire_potential_reciprocal(mp_moire,
+            lat, moire_potential_pointwise)
+elif potential == "off":
+    potential_fun = None
 
 # Complete reciprocal moire lattice
 rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, 1)
@@ -50,11 +69,7 @@ path = bandcalc.generate_k_path(points, N)
 k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 
 # Calculate the band structure (no potential)
-bandstructure = (bandcalc.calc_bandstructure(points, rec_moire_lattice, N) # nm^2kg/s
-        * 1e-18 # convert to m^2kg/2
-        / physical_constants["elementary charge"][0] # convert to eV
-        * 1e3 # convert to meV
-)
+bandstructure = bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun)
 
 # Plot the results
 
