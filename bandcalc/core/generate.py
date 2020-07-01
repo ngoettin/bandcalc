@@ -156,11 +156,12 @@ def generate_k_path(points, N):
     path = scipy.interpolate.griddata(np.arange(num_points), points, np.linspace(0, num_points-1, N))
     return path
 
-def _generate_monkhorst_pack_raw(lattice_basis, q):
+def generate_monkhorst_pack_raw(lattice_basis, q):
     """
     Generate a Monkhorst-Pack set naively, which expands into neighbouring
     Brillouin zones. Refer to :py:func:`generate_monkhorst_pack_set` for 
-    the folded Monkhorst-Pack set.
+    the folded Monkhorst-Pack set. Use this one for calculations and the other
+    for plots.
 
     :param lattice_basis: lattice basis
     :param q: lattice density (see the `original paper <https://journals.aps.org/prb/pdf/10.1103/PhysRevB.13.5188>`_)
@@ -195,7 +196,7 @@ def generate_monkhorst_pack_set(lattice_basis, q):
     :rtype: numpy.ndarray
     """
 
-    raw_monkhorst_pack_set = _generate_monkhorst_pack_raw(lattice_basis, q)
+    raw_monkhorst_pack_set = generate_monkhorst_pack_raw(lattice_basis, q)
     lattice_1bz = generate_lattice_by_shell(lattice_basis, 1)
     tree = scipy.spatial.KDTree(lattice_1bz)
 

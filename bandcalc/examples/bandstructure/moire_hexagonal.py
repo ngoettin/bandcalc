@@ -49,7 +49,7 @@ if potential == "MoS2":
     GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
 
     # Generate a real space monkhorst pack lattice
-    mp_moire = bandcalc.generate_monkhorst_pack_set(m, 100)
+    mp_moire = bandcalc.generate_monkhorst_pack_raw(m, 100)
 
     # Calculate pointwise real space moire potential
     moire_potential_pointwise = bandcalc.calc_moire_potential(mp_moire, GM, Vj)
@@ -60,7 +60,7 @@ elif potential == "off":
     potential_fun = None
 
 # Complete reciprocal moire lattice
-rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, 1)
+rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, 4)
 
 # Calculate MBZ and choose some K-points for the k-path
 vor_m = Voronoi(rec_moire_lattice)
@@ -88,8 +88,11 @@ axs[0].text(0.05, 0.95, f"{angle}°", transform=axs[0].transAxes, va="top", bbox
 axs[0].set_xlabel(r"nm")
 axs[0].set_ylabel(r"nm")
 
-bandcalc.plot_bandstructure(axs[1], np.abs(bandstructure), k_names, "k")
+bandcalc.plot_bandstructure(axs[1], np.real(bandstructure), k_names, "k")
+axs[1].plot([0, len(path)], [0, 0], "k--")
+axs[1].set_xlim([0, len(path)])
 axs[1].set_ylabel(r"$E - \hbar\Omega_0$ in {}eV".format(prefix))
+axs[1].set_ylim([-50, 50])
 
 plt.tight_layout()
 plt.show()
