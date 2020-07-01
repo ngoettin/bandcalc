@@ -26,7 +26,8 @@ k_names = [r"$\Gamma$", r"X", r"M", r"$\Gamma$", r"R"]
 path = bandcalc.generate_k_path(points, N)
 
 # Calculate band structure
-bandstructure = bandcalc.calc_bandstructure(points, lattice, N)
+bandstructure, prefix = bandcalc.get_unit_prefix(
+        bandcalc.calc_bandstructure(points, lattice, N))
 
 # Plots
 fig = plt.figure(figsize=(11,5))
@@ -36,7 +37,8 @@ bandcalc.plot_lattice_3d(ax0, lattice, "ko")
 bandcalc.plot_k_path_3d(ax0, path, "r")
 bandcalc.plot_bandstructure(ax1, bandstructure, k_names, "k")
 
-ax1.set_ylim([-1, 30])
+ax1.set_ylabel(r"$E - \hbar\Omega_0$ in {}eV".format(prefix))
+ax1.set_ylim([0, 4])
 
 plt.tight_layout()
 plt.show()

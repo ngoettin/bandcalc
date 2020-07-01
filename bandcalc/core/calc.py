@@ -28,7 +28,7 @@ def eps_0(k, G):
     :rtype: float
     """
 
-    return hbar**2/(2*m)*np.sum((k-G)**2, axis=1)*1e18
+    return hbar**2/(2*m)*np.sum((k-G)**2, axis=1)*1e18/e # in eV
 
 def calc_hamiltonian(k, lattice, potential_matrix):
     """
@@ -43,7 +43,7 @@ def calc_hamiltonian(k, lattice, potential_matrix):
     :rtype: numpy.ndarray
     """
 
-    diagonal = np.diag(eps_0(k, lattice))*1e3/e
+    diagonal = np.diag(eps_0(k, lattice))
     return potential_matrix + diagonal
 
 def calc_potential_matrix(lattice, potential_fun=None, *args):

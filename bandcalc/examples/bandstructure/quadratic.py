@@ -6,7 +6,6 @@ import bandcalc
 
 # Constants
 a = 1
-V = 1
 N = 1000
 
 # Reciprocal lattice vectors
@@ -27,7 +26,8 @@ path = bandcalc.generate_k_path(points, N)
 vor = Voronoi(lattice)
 
 # Calculate band structure
-bandstructure = bandcalc.calc_bandstructure(points, lattice, N)
+bandstructure, prefix = bandcalc.get_unit_prefix(
+        bandcalc.calc_bandstructure(points, lattice, N))
 
 # Plots
 fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11,5))
@@ -36,7 +36,8 @@ bandcalc.plot_k_path(ax[0], path, "r")
 voronoi_plot_2d(vor, ax[0], show_points=False, show_vertices=False)
 bandcalc.plot_bandstructure(ax[1], bandstructure, k_names, "k")
 
-ax[1].set_ylim([-1, 30])
+ax[1].set_ylabel(r"$E - \hbar\Omega_0$ in {}eV".format(prefix))
+ax[1].set_ylim([0, 4])
 
 plt.tight_layout()
 plt.show()

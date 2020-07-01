@@ -37,7 +37,7 @@ m = bandcalc.generate_reciprocal_lattice_basis(rec_m)
 
 if potential == "MoS2":
     # Moire potential coefficients
-    V = 12.4*np.exp(1j*81.5*np.pi/180)
+    V = 12.4*1e-3*np.exp(1j*81.5*np.pi/180) # in eV
     Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
     # Reciprocal moire lattice vectors
     G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
@@ -73,7 +73,9 @@ path = bandcalc.generate_k_path(points, N)
 k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 
 # Calculate the band structure (no potential)
-bandstructure = bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun)
+bandstructure, prefix = bandcalc.get_unit_prefix(
+        bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun))
+
 
 # Plot the results
 
@@ -87,7 +89,7 @@ axs[0].set_xlabel(r"nm")
 axs[0].set_ylabel(r"nm")
 
 bandcalc.plot_bandstructure(axs[1], np.abs(bandstructure), k_names, "k")
-axs[1].set_ylabel(r"$E - \hbar\Omega_0$ in meV")
+axs[1].set_ylabel(r"$E - \hbar\Omega_0$ in {}eV".format(prefix))
 
 plt.tight_layout()
 plt.show()
