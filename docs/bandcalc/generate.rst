@@ -1,5 +1,5 @@
 generate
 ========
 
-.. automodule:: bandcalc.lattice.generate
+.. automodule:: bandcalc.core.generate
    :members:

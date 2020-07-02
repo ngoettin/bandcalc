@@ -1,5 +1,5 @@
 plot
 ====
 
-.. automodule:: bandcalc.lattice.plot
+.. automodule:: bandcalc.core.plot
    :members:

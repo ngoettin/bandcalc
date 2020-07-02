@@ -1,5 +1,5 @@
 calc
 ====
 
-.. automodule:: bandcalc.lattice.calc
+.. automodule:: bandcalc.core.calc
    :members:
