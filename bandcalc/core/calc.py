@@ -1,6 +1,9 @@
 import numpy as np
 import scipy.constants
 
+import ray
+ray.init(address='auto', redis_password='5241590000000000')
+
 from .generate import generate_k_path
 
 hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]
@@ -51,24 +54,26 @@ def calc_potential_matrix(lattice, potential_fun=None, *args):
     Calculate matrix of potentials using *potential_fun*.
 
     :param lattice: reciprocal lattice
-    :param potential_fun: function that calculates potential for a set of lattice vectors
+    :param potential_fun: function that calculates potential for a set of lattice vectors.
+                          Has to be a `ray.remote_function.RemoteFunction` or an `int`/`float`
+                          for a constant potential
 
     :type lattice: numpy.ndarray
-    :type potential_fun: function
+    :type potential_fun: ray.remote_function.RemoteFunction | int | float
 
     :rtype: numpy.ndarray
     """
 
     if potential_fun is None:
-        potential_fun = lambda x: np.sum(0*x, axis=1)
-
-    lattice_matrix = np.array(
-            [lattice - vec for vec in lattice]
-    )
-
-    potential_matrix = np.array(
-            [potential_fun(lattice, *args) for lattice in lattice_matrix]
-    )
+        potential_matrix = np.zeros((lattice.shape[0],)*2)
+    elif isinstance(potential_fun, (float, int)):
+        potential_matrix = np.ones((lattice.shape[0],)*2)*potential_fun
+        np.fill_diagonal(potential_matrix, 0)
+    elif isinstance(potential_fun, ray.remote_function.RemoteFunction):
+        lattice_matrix = np.array([lattice - vec for vec in lattice])
+        potential_matrix = np.array(
+                ray.get([potential_fun.remote(lattice, *args) for lattice in lattice_matrix])
+        )
     return potential_matrix
 
 def calc_bandstructure(k_points, lattice, N, potential_fun=None, *args):
@@ -78,15 +83,17 @@ def calc_bandstructure(k_points, lattice, N, potential_fun=None, *args):
     :param k_points: k points
     :param lattice: reciprocal lattice
     :param N: number of samples
+    :param potential_fun: See :func:`calc_potential_matrix`
 
     :type k_points: numpy.ndarray
     :type lattice: numpy.ndarray
     :type N: int
+    :type potential_fun:
 
     :rtype: numpy.ndarray
     """
 
-    potential_matrix = calc_potential_matrix(lattice, potential_fun)
+    potential_matrix = calc_potential_matrix(lattice, potential_fun, *args)
     path = generate_k_path(k_points, N)
     eig_vals = np.array(
             [np.linalg.eigvals(calc_hamiltonian(k, lattice, potential_matrix)) for k in path]
@@ -104,7 +111,7 @@ def calc_moire_potential_on_grid(grid, reciprocal_moire_lattice, potential_coeff
     :param moire_lattice: :math:`\vec{G}_j^{\text{M}}`, the six moire lattice vectors
     :param potential_coeffs: :math:`V_j`, the coefficients for the potential
 
-    :type grid: numpy.ndarray
+    :type grid: list(numpy.ndarray)
     :type moire_lattice: numpy.ndarray
     :type potential_coeffs: numpy.ndarray
 
@@ -156,7 +163,7 @@ def calc_moire_potential_reciprocal_on_grid(real_space_points, reciprocal_space_
     :param moire_potential_pointwise: Pre-calculated real space Moire potential :math:`V^{\text{M}}(\vec{r}\,)`
 
     :type real_space_points: numpy.ndarray
-    :type reciprocal_space_grid: numpy.ndarray
+    :type reciprocal_space_grid: list(numpy.ndarray)
     :type moire_potential_pointwise: numpy.ndarray
 
     :rtype: numpy.ndarray
@@ -170,7 +177,8 @@ def calc_moire_potential_reciprocal_on_grid(real_space_points, reciprocal_space_
     integral = integrand.sum(axis=0)
     return integral/len(real_space_points)
 
-def calc_moire_potential_reciprocal(real_space_points, reciprocal_space_points, moire_potential_pointwise):
+@ray.remote
+def calc_moire_potential_reciprocal(reciprocal_space_points, real_space_points, moire_potential_pointwise):
     r"""
     Calculate the reciprocal moire potential using
 
