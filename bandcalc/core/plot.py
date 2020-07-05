@@ -44,7 +44,7 @@ def plot_lattice(ax, lattice, *plotargs, **plotkargs):
     """
 
     mpl_obj = ax.plot(lattice[:,0], lattice[:,1], *plotargs, **plotkargs)
-    ax.axis("equal")
+    ax.axis("scaled")
     return mpl_obj
 
 def plot_lattice_3d(ax, lattice, *plotargs, **plotkargs):
@@ -122,7 +122,25 @@ def plot_moire_potential(ax, grid, moire_potential, *plotargs, **plotkargs):
     :type moire_potential: numpy.ndarray
     """
 
-    mpl_obj = ax.contourf(grid[0], grid[1], moire_potential, *plotargs, **plotkargs)
-    ax.axis("equal")
+    mpl_obj = ax.contourf(grid[0], grid[1], np.real(moire_potential), *plotargs, **plotkargs)
+    ax.axis("scaled")
     return mpl_obj
 
+def plot_wave_function(ax, grid, wave_function, *plotargs, **plotkargs):
+    """
+    Plot a wave funtion on a regular grid.
+
+    :param ax: matplotlib axis
+    :param grid: grid to plot on
+    :param wave_function: wave function to plot
+
+    :type ax: matplotlib.axes.Axes
+    :type grid: numpy.ndarray
+    :type wave_function: numpy.ndarray
+    """
+
+    mpl_obj = ax.imshow(wave_function, *plotargs,
+            extent=[grid[0].min(), grid[0].max(), grid[1].min(), grid[1].max()],
+            origin="lower", **plotkargs)
+    ax.axis("scaled")
+    return mpl_obj

@@ -100,6 +100,62 @@ def calc_bandstructure(k_points, lattice, N, potential_fun=None, *args):
     )
     return eig_vals
 
+def calc_wave_function_on_grid(k_point, lattice, grid, energy_level=0, potential_fun=None, *args):
+    r"""
+    Calculate the wave function (not the absolute square) of a system on a real space grid.
+    It is assumed, that the wave function :math:`|\chi\rangle` can be written as
+
+    .. math::
+        |\chi_{\mathbf{Q}}\rangle^{(\alpha)}(\mathbf{r}) = \sum_{\mathbf{G}^\text{M}}
+        c^{(\alpha)}_{\mathbf{Q}-\mathbf{G}^\text{M}}
+        \text{e}^{\text{i}(\mathbf{Q}-\mathbf{G}^\text{M})\mathbf{r}},
+
+    where
+     * :math:`\alpha\in \{0, ..., N\}` is the *energy_level* of the wave function.
+       If there are :math:`N` reciprocal lattice vectors, there will be :math:`N` energy levels.
+     * :math:`\mathbf{G}^{\text{M}}` are the reciprocal *lattice* vectors
+     * :math:`\mathbf{r}` are real space vectors (*grid*)
+     * :math:`\mathbf{Q}` is the *k_point*, at which the wave function will be evaluated.
+     * :math:`c` are the eigenvector solutions of the systems hamiltonian.
+       The eigenvectors are sorted by :math:`\alpha` and their components can be referred to
+       by the corresponding lattice vectors.
+
+    :param k_point: :math:`\mathbf{Q}`
+    :param lattice: :math:`\mathbf{G}^{\text{M}}`
+    :param grid: :math:`\mathbf{r}`
+    :param energy_level: :math:`\alpha`
+    :param potential_fun: See :func:`calc_potential_matrix`
+
+    :type k_point: numpy.ndarray
+    :type lattice: numpy.ndarray
+    :type grid: list(numpy.ndarray)
+    :type energy_level: int
+    :type potential_fun:
+
+    :rtype: numpy.ndarray
+    """
+
+    if energy_level not in range(len(lattice)):
+        raise ValueError(("Energy level {} not allowed. "
+                          "There are only {} energy levels in the system "
+                          "and counting starts from 0.").format(
+                              energy_level, len(lattice)))
+    potential_matrix = calc_potential_matrix(lattice, potential_fun, *args)
+    hamiltonian = calc_hamiltonian(k_point, lattice, potential_matrix)
+    eig_vals, eig_vecs = np.linalg.eig(hamiltonian)
+
+    # Sort the eigenvectors by energy
+    eig_vecs = eig_vecs[:, np.argsort(np.real(eig_vals))]
+
+    # Pick the energy level
+    eig_vec = eig_vecs[:, energy_level]
+
+    summand = np.exp(1j*(
+        np.tensordot((k_point-lattice)[:,0], grid[0], axes=0)+
+        np.tensordot((k_point-lattice)[:,1], grid[1], axes=0)
+        ))*eig_vec[..., None, None]
+    return np.sum(summand, axis=0)
+
 def calc_moire_potential_on_grid(grid, reciprocal_moire_lattice, potential_coeffs):
     r"""
     Calculate the moire potential on a regular grid using
