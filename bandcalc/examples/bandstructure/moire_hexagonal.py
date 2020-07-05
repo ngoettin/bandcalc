@@ -9,9 +9,9 @@ import bandcalc
 from bandcalc.constants import lattice_constants
 
 parser = argparse.ArgumentParser(description="Calculate the Moire band structure")
-parser.add_argument("--potential", choices=["off", "MoS2"],
+parser.add_argument("-p", "--potential", choices=["off", "MoS2"],
         default="off", help="choose the potential to calculate the band structure with")
-parser.add_argument("--angle", type=float,
+parser.add_argument("-a", "--angle", type=float,
         default=3, help="twist angle of the lattices in degrees")
 args = parser.parse_args()
 potential = args.potential
@@ -54,8 +54,7 @@ if potential == "MoS2":
     # Calculate pointwise real space moire potential
     moire_potential_pointwise = bandcalc.calc_moire_potential(mp_moire, GM, Vj)
 
-    potential_fun = lambda lat: bandcalc.calc_moire_potential_reciprocal(mp_moire,
-            lat, moire_potential_pointwise)
+    potential_fun = bandcalc.calc_moire_potential_reciprocal
 elif potential == "off":
     potential_fun = None
 
@@ -74,7 +73,8 @@ k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 
 # Calculate the band structure (no potential)
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun))
+        bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun,
+            mp_moire, moire_potential_pointwise))
 
 
 # Plot the results
@@ -92,7 +92,7 @@ bandcalc.plot_bandstructure(axs[1], np.real(bandstructure), k_names, "k")
 axs[1].plot([0, len(path)], [0, 0], "k--")
 axs[1].set_xlim([0, len(path)])
 axs[1].set_ylabel(r"$E - \hbar\Omega_0$ in {}eV".format(prefix))
-axs[1].set_ylim([-50, 50])
+#axs[1].set_ylim([-50, 50])
 
 plt.tight_layout()
 plt.show()
