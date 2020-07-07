@@ -1,7 +1,6 @@
 import argparse
 import functools
 
-#from multiprocessing import Pool
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d #pylint: disable=E0611
@@ -17,10 +16,13 @@ parser.add_argument("-a", "--angle", type=float,
         default=3, help="twist angle of the lattices in degrees")
 parser.add_argument("-e", "--energy-level", type=int,
         default=0, help="energy level of the wave function")
+parser.add_argument("-s", "--shells", type=int,
+        default=1, help="number of lattice shells for the calculation")
 args = parser.parse_args()
 potential = args.potential
 angle = args.angle
 energy_level = args.energy_level
+shells = args.shells
 
 #pool = Pool(processes=4)
 
@@ -68,7 +70,7 @@ elif potential == "off":
     potential_fun = None
 
 # Complete reciprocal moire lattice
-rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, 8)
+rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, shells)
 
 # Calculate MBZ and find a K-point
 vor_m = Voronoi(rec_moire_lattice)
@@ -95,8 +97,7 @@ energy_slice = energies[
     energy_level+5 if energy_level+5<len(energies) else None]
 energy = np.real(energies[energy_level])
 
-#pool.close()
-#pool.join()
+#np.save("wavefunction_moire_{}deg_energy_level_{}_shells_8.npy".format(angle, energy_level), wavefunction)
 
 # Plot the results
 fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(11, 5))

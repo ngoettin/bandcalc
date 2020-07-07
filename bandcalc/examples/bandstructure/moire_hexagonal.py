@@ -13,9 +13,12 @@ parser.add_argument("-p", "--potential", choices=["off", "MoS2"],
         default="off", help="choose the potential to calculate the band structure with")
 parser.add_argument("-a", "--angle", type=float,
         default=3, help="twist angle of the lattices in degrees")
+parser.add_argument("-s", "--shells", type=int,
+        default=1, help="number of lattice shells for the calculation")
 args = parser.parse_args()
 potential = args.potential
 angle = args.angle
+shells = args.shells
 
 # Constants
 a = lattice_constants["MoS2"]*1e9
@@ -59,7 +62,7 @@ elif potential == "off":
     potential_fun = None
 
 # Complete reciprocal moire lattice
-rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, 4)
+rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, shells)
 
 # Calculate MBZ and choose some K-points for the k-path
 vor_m = Voronoi(rec_moire_lattice)
@@ -76,6 +79,7 @@ bandstructure, prefix = bandcalc.get_unit_prefix(
         bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun,
             mp_moire, moire_potential_pointwise))
 
+#np.save("bandstructure_moire_{}deg_in_{}eV.npy".format(angle, prefix), bandstructure)
 
 # Plot the results
 
