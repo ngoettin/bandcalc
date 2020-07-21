@@ -1,8 +1,9 @@
+import cupy as cp
 import numpy as np
 import scipy.constants
 
 import ray
-ray.init(address='auto', redis_password='5241590000000000')
+ray.init(address='auto', redis_password='5241590000000000', ignore_reinit_error=True)
 
 from .generate import generate_k_path
 
@@ -49,17 +50,17 @@ def calc_hamiltonian(k, lattice, potential_matrix):
     diagonal = np.diag(eps_0(k, lattice))
     return potential_matrix + diagonal
 
-def calc_potential_matrix(lattice, potential_fun=None, *args):
+def calc_potential_matrix(lattice, potential_fun=None, use_gpu=False, num_gpus=1, **kwargs):
     """
     Calculate matrix of potentials using *potential_fun*.
 
     :param lattice: reciprocal lattice
     :param potential_fun: function that calculates potential for a set of lattice vectors.
-                          Has to be a `ray.remote_function.RemoteFunction` or an `int`/`float`
+                          Has to be a `function` or an `int`/`float`
                           for a constant potential
 
     :type lattice: numpy.ndarray
-    :type potential_fun: ray.remote_function.RemoteFunction | int | float
+    :type potential_fun: function | int | float
 
     :rtype: numpy.ndarray
     """
@@ -69,14 +70,25 @@ def calc_potential_matrix(lattice, potential_fun=None, *args):
     elif isinstance(potential_fun, (float, int)):
         potential_matrix = np.ones((lattice.shape[0],)*2)*potential_fun
         np.fill_diagonal(potential_matrix, 0)
-    elif isinstance(potential_fun, ray.remote_function.RemoteFunction):
-        lattice_matrix = np.array([lattice - vec for vec in lattice])
-        potential_matrix = np.array(
-                ray.get([potential_fun.remote(lattice, *args) for lattice in lattice_matrix])
+    elif callable(potential_fun):
+        if use_gpu:
+            xp = cp
+            potential_fun = ray.remote(num_gpus=num_gpus)(potential_fun)
+            lattice = cp.array(lattice)
+            kwargs = {k: cp.array(v) if isinstance(v, np.ndarray) else v
+                    for k,v in kwargs.items()}
+        else:
+            xp = np
+            potential_fun = ray.remote(potential_fun)
+        lattice_matrix = xp.array([lattice - vec for vec in lattice])
+        potential_matrix = xp.array(
+                ray.get([potential_fun.remote(lattice, use_gpu=use_gpu, **kwargs)
+                    for lattice in lattice_matrix])
         )
-    return potential_matrix
 
-def calc_bandstructure(k_points, lattice, N, potential_fun=None, *args):
+    return cp.asnumpy(potential_matrix)
+
+def calc_bandstructure(k_points, lattice, N, potential_fun=None, **kwargs):
     """
     Calculate the band structure of a lattice along a given k path with N samples
 
@@ -93,14 +105,14 @@ def calc_bandstructure(k_points, lattice, N, potential_fun=None, *args):
     :rtype: numpy.ndarray
     """
 
-    potential_matrix = calc_potential_matrix(lattice, potential_fun, *args)
+    potential_matrix = calc_potential_matrix(lattice, potential_fun, **kwargs)
     path = generate_k_path(k_points, N)
     eig_vals = np.array(
             [np.linalg.eigvals(calc_hamiltonian(k, lattice, potential_matrix)) for k in path]
     )
     return eig_vals
 
-def calc_wave_function_on_grid(k_point, lattice, grid, energy_level=0, potential_fun=None, *args):
+def calc_wave_function_on_grid(k_point, lattice, grid, energy_level=0, potential_fun=None, **kwargs):
     r"""
     Calculate the wave function (not the absolute square) of a system on a real space grid.
     It is assumed, that the wave function :math:`|\chi\rangle` can be written as
@@ -140,7 +152,7 @@ def calc_wave_function_on_grid(k_point, lattice, grid, energy_level=0, potential
                           "There are only {} energy levels in the system "
                           "and counting starts from 0.").format(
                               energy_level, len(lattice)))
-    potential_matrix = calc_potential_matrix(lattice, potential_fun, *args)
+    potential_matrix = calc_potential_matrix(lattice, potential_fun, **kwargs)
     hamiltonian = calc_hamiltonian(k_point, lattice, potential_matrix)
     eig_vals, eig_vecs = np.linalg.eig(hamiltonian)
 
@@ -233,8 +245,8 @@ def calc_moire_potential_reciprocal_on_grid(real_space_points, reciprocal_space_
     integral = integrand.sum(axis=0)
     return integral/len(real_space_points)
 
-@ray.remote
-def calc_moire_potential_reciprocal(reciprocal_space_points, real_space_points, moire_potential_pointwise):
+def calc_moire_potential_reciprocal(reciprocal_space_points, real_space_points, moire_potential_pointwise,
+        **kwargs):
     r"""
     Calculate the reciprocal moire potential using
 
@@ -255,10 +267,12 @@ def calc_moire_potential_reciprocal(reciprocal_space_points, real_space_points, 
     :rtype: numpy.ndarray
     """
 
-    integrand = np.exp(
+    xp = cp if kwargs.get("use_gpu", False) else np
+
+    integrand = xp.exp(
             -1j*(
-                np.tensordot(real_space_points[:,0], reciprocal_space_points[:,0], axes=0) +
-                np.tensordot(real_space_points[:,1], reciprocal_space_points[:,1], axes=0)
+                xp.tensordot(real_space_points[:,0], reciprocal_space_points[:,0], axes=0) +
+                xp.tensordot(real_space_points[:,1], reciprocal_space_points[:,1], axes=0)
             ))*moire_potential_pointwise[..., None]
     integral = integrand.sum(axis=0)
     return integral/len(real_space_points)

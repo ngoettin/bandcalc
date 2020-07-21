@@ -83,13 +83,19 @@ size = np.linspace(-50, 50, 500)
 grid = np.meshgrid(size, size)
 
 wavefunction = bandcalc.calc_wave_function_on_grid(k_point, rec_moire_lattice, grid,
-        energy_level, potential_fun, mp_moire, moire_potential_pointwise)
+        energy_level, potential_fun,
+        real_space_points=mp_moire,
+        moire_potential_pointwise=moire_potential_pointwise,
+        use_gpu=True)
 
 # Moire potential for reference
 moire_potential = bandcalc.calc_moire_potential_on_grid(grid, GM, Vj)
 
 # Energies for reference
-potential_matrix = bandcalc.calc_potential_matrix(rec_moire_lattice, potential_fun, mp_moire, moire_potential_pointwise)
+potential_matrix = bandcalc.calc_potential_matrix(rec_moire_lattice, potential_fun,
+        use_gpu=True, 
+        real_space_points=mp_moire,
+        moire_potential_pointwise=moire_potential_pointwise)
 energies, prefix = bandcalc.get_unit_prefix(np.sort(np.linalg.eigvals(
         bandcalc.calc_hamiltonian(k_point, rec_moire_lattice, potential_matrix))))
 energy_slice = energies[
