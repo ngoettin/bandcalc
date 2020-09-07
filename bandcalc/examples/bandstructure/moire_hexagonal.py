@@ -59,6 +59,8 @@ if potential == "MoS2":
 
     potential_fun = bandcalc.calc_moire_potential_reciprocal
 elif potential == "off":
+    mp_moire = None
+    moire_potential_pointwise = None
     potential_fun = None
 
 # Complete reciprocal moire lattice
@@ -77,7 +79,8 @@ k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 # Calculate the band structure (no potential)
 bandstructure, prefix = bandcalc.get_unit_prefix(
         bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun,
-            mp_moire, moire_potential_pointwise))
+            real_space_points=mp_moire,
+            moire_potential_pointwise=moire_potential_pointwise))
 
 #np.save("bandstructure_moire_{}deg_in_{}eV.npy".format(angle, prefix), bandstructure)
 
@@ -89,8 +92,8 @@ bandcalc.plot_lattice(axs[0], rec_moire_lattice, "ko")
 voronoi_plot_2d(vor_m, axs[0], show_points=False, show_vertices=False)
 bandcalc.plot_k_path(axs[0], path, "r")
 axs[0].text(0.05, 0.95, f"{angle}°", transform=axs[0].transAxes, va="top", bbox={"fc": "white", "alpha": 0.2})
-axs[0].set_xlabel(r"nm")
-axs[0].set_ylabel(r"nm")
+axs[0].set_xlabel(r"nm$^{-1}$")
+axs[0].set_ylabel(r"nm$^{-1}$")
 
 bandcalc.plot_bandstructure(axs[1], np.real(bandstructure), k_names, "k")
 axs[1].plot([0, len(path)], [0, 0], "k--")
