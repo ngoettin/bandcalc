@@ -24,8 +24,8 @@ def generate_complex_grid(r_min, r_max, i_min, i_max, r_size, i_size):
     :type r_max: float
     :type i_min: float
     :type i_max: float
-    :type r_size: float
-    :type i_size: float
+    :type r_size: int
+    :type i_size: int
 
     :rtype: list[numpy.ndarray]
     """
