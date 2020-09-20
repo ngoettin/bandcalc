@@ -5,9 +5,15 @@ import numpy as np
 import scipy.interpolate
 import scipy.spatial
 
+from .tools import find_k_order_delaunay_neighbours
+
 def group_lattice_vectors_by_length(lattice):
     """
-    Group an array of vectors by length
+    Group an array of vectors by length.
+    WARNING: This function uses rounding and should only
+    be used with lattices of scales larger than 1.
+
+    Deprecated.
 
     :param lattice: vectors to group
 
@@ -42,20 +48,6 @@ def generate_lattice(lattice_basis, size):
     lattice = np.matmul(lattice_basis.T, combinations.T)
     return lattice.T
 
-def generate_reciprocal_lattice_basis(lattice_basis):
-    """
-    Generate the reciprocal lattice basis of a given basis.
-
-    :param lattice_basis: lattice basis to transform
-
-    :type lattice_basis: numpy.ndarray
-
-    :rtype: numpy.ndarray
-    """
-
-    return 2*np.pi*np.linalg.inv(lattice_basis.T)
-
-
 def generate_lattice_by_shell(lattice_basis, shell):
     """
     Generate lattice from basis vectors with *shell* shells around the zero vector
@@ -70,15 +62,26 @@ def generate_lattice_by_shell(lattice_basis, shell):
     """
 
     uncut_lattice = generate_lattice(lattice_basis, shell)
-    ordered_lattice = group_lattice_vectors_by_length(uncut_lattice)
-    try:
-        shortest_vector = list(ordered_lattice.keys())[1]
-    except IndexError:
-        shortest_vector = np.array([0,0])
-    for key in ordered_lattice.copy().keys():
-        if key>shortest_vector*shell**2:
-            del ordered_lattice[key]
-    return np.vstack(list(ordered_lattice.values()))
+    triangulation = scipy.spatial.Delaunay(uncut_lattice) #pylint: disable=E1101
+
+    # There has to be a zero vector in the lattice, which should always be the center
+    zero_vec_index = np.where(np.all(uncut_lattice == [0,0], axis=1))[0][0]
+
+    lattice_indices = find_k_order_delaunay_neighbours(zero_vec_index, triangulation, shell)
+    return uncut_lattice[lattice_indices]
+
+def generate_reciprocal_lattice_basis(lattice_basis):
+    """
+    Generate the reciprocal lattice basis of a given basis.
+
+    :param lattice_basis: lattice basis to transform
+
+    :type lattice_basis: numpy.ndarray
+
+    :rtype: numpy.ndarray
+    """
+
+    return 2*np.pi*np.linalg.inv(lattice_basis.T)
 
 def generate_rotation_matrix(angle, degrees=True):
     """
