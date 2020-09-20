@@ -9,5 +9,6 @@ unit_prefixes = {
 }
 
 lattice_constants = {
-        "MoS2": 0.319e-9,
+        "MoS2": 0.319e-9, #https://journals.aps.org/prl/supplemental/10.1103/PhysRevLett.121.026402/Moire_Hubbard_SM.pdf
+        "WSe2": 0.332e-9, #https://journals.aps.org/prl/supplemental/10.1103/PhysRevLett.121.026402/Moire_Hubbard_SM.pdf
 }
