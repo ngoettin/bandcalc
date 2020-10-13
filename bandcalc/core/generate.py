@@ -68,7 +68,12 @@ def generate_lattice_by_shell(lattice_basis, shell):
     zero_vec_index = np.where(np.all(uncut_lattice == [0,0], axis=1))[0][0]
 
     lattice_indices = find_k_order_delaunay_neighbours(zero_vec_index, triangulation, shell)
-    return uncut_lattice[lattice_indices]
+    cut_lattice = uncut_lattice[lattice_indices]
+    
+    # Sort by length and angle
+    cut_lattice = np.array(sorted(cut_lattice, key= lambda vec:
+        (np.abs(vec.view(complex)), np.angle(vec.view(complex)))))
+    return cut_lattice
 
 def generate_reciprocal_lattice_basis(lattice_basis):
     """
