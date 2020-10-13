@@ -29,6 +29,9 @@ shells = args.shells
 # Constants
 a = lattice_constants["MoS2"]*1e9
 N = 1000
+m_e = 0.42*bandcalc.constants.physical_constants["electron mass"][0]
+m_h = 0.34*bandcalc.constants.physical_constants["electron mass"][0]
+m = m_e+m_h
 
 # Reciprocal lattice vectors
 b1 = np.array([2*np.pi/(np.sqrt(3)*a), 2*np.pi/a])
@@ -82,7 +85,7 @@ k_point = sorted_vertices[0]
 size = np.linspace(-50, 50, 500)
 grid = np.meshgrid(size, size)
 
-wavefunction = bandcalc.calc_wave_function_on_grid(k_point, rec_moire_lattice, grid,
+wavefunction = bandcalc.calc_wave_function_on_grid(k_point, rec_moire_lattice, grid, m,
         energy_level, potential_fun,
         real_space_points=mp_moire,
         moire_potential_pointwise=moire_potential_pointwise,

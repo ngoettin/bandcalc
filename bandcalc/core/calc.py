@@ -9,12 +9,13 @@ from .generate import generate_k_path
 
 hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]
 e = scipy.constants.physical_constants["elementary charge"][0]
-m_e = 0.42*scipy.constants.physical_constants["electron mass"][0]
-m_h = 0.34*scipy.constants.physical_constants["electron mass"][0]
-m = m_e+m_h
+#m_e = 0.42*scipy.constants.physical_constants["electron mass"][0]
+#m_h = 0.34*scipy.constants.physical_constants["electron mass"][0]
+#m = m_e+m_h
+m = 0.35*scipy.constants.physical_constants["electron mass"][0]
 V = 0
 
-def eps_0(k, G):
+def eps_0(k, G, m):
     r"""
     Calculate the unpertubated energy for given k vector and reciprocal lattice vector using
 
@@ -25,29 +26,33 @@ def eps_0(k, G):
 
     :param k: k vector of the particle
     :param G: reciprocal lattice vector
+    :param m: particle mass
 
     :type k: numpy.ndarray
     :type G: numpy.ndarray
+    :type m: float
 
     :rtype: float
     """
 
     return hbar**2/(2*m)*np.sum((k-G)**2, axis=1)*1e18/e # in eV
 
-def calc_hamiltonian(k, lattice, potential_matrix):
+def calc_hamiltonian(k, lattice, potential_matrix, m):
     """
     Construct the hamiltonian for any given k in a specified lattice
 
     :param k: k vector of the particle
     :param lattice: reciprocal lattice
+    :param m: particle mass
 
     :type k: numpy.ndarray
     :type lattice: numpy.ndarray
+    :type m: float
 
     :rtype: numpy.ndarray
     """
 
-    diagonal = np.diag(eps_0(k, lattice))
+    diagonal = np.diag(eps_0(k, lattice, m))
     return potential_matrix + diagonal
 
 def calc_potential_matrix(lattice, potential_fun=None, use_gpu=False, num_gpus=1, **kwargs):
@@ -88,18 +93,20 @@ def calc_potential_matrix(lattice, potential_fun=None, use_gpu=False, num_gpus=1
 
     return cp.asnumpy(potential_matrix)
 
-def calc_bandstructure(k_points, lattice, N, potential_fun=None, **kwargs):
+def calc_bandstructure(k_points, lattice, N, m, potential_fun=None, **kwargs):
     """
     Calculate the band structure of a lattice along a given k path with N samples
 
     :param k_points: k points
     :param lattice: reciprocal lattice
     :param N: number of samples
+    :param m: particle mass
     :param potential_fun: See :func:`calc_potential_matrix`
 
     :type k_points: numpy.ndarray
     :type lattice: numpy.ndarray
     :type N: int
+    :type m: float
     :type potential_fun:
 
     :rtype: numpy.ndarray
@@ -108,11 +115,11 @@ def calc_bandstructure(k_points, lattice, N, potential_fun=None, **kwargs):
     potential_matrix = calc_potential_matrix(lattice, potential_fun, **kwargs)
     path = generate_k_path(k_points, N)
     eig_vals = np.array(
-            [np.linalg.eigvals(calc_hamiltonian(k, lattice, potential_matrix)) for k in path]
+            [np.linalg.eigvals(calc_hamiltonian(k, lattice, potential_matrix, m)) for k in path]
     )
     return eig_vals
 
-def calc_wave_function_on_grid(k_point, lattice, grid, energy_level=0, potential_fun=None, **kwargs):
+def calc_wave_function_on_grid(k_point, lattice, grid, m, energy_level=0, potential_fun=None, **kwargs):
     r"""
     Calculate the wave function (not the absolute square) of a system on a real space grid.
     It is assumed, that the wave function :math:`|\chi\rangle` can be written as
@@ -135,12 +142,14 @@ def calc_wave_function_on_grid(k_point, lattice, grid, energy_level=0, potential
     :param k_point: :math:`\mathbf{Q}`
     :param lattice: :math:`\mathbf{G}^{\text{M}}`
     :param grid: :math:`\mathbf{r}`
+    :param m: particle mass
     :param energy_level: :math:`\alpha`
     :param potential_fun: See :func:`calc_potential_matrix`
 
     :type k_point: numpy.ndarray
     :type lattice: numpy.ndarray
     :type grid: list(numpy.ndarray)
+    :type m: float
     :type energy_level: int
     :type potential_fun:
 
@@ -153,7 +162,7 @@ def calc_wave_function_on_grid(k_point, lattice, grid, energy_level=0, potential
                           "and counting starts from 0.").format(
                               energy_level, len(lattice)))
     potential_matrix = calc_potential_matrix(lattice, potential_fun, **kwargs)
-    hamiltonian = calc_hamiltonian(k_point, lattice, potential_matrix)
+    hamiltonian = calc_hamiltonian(k_point, lattice, potential_matrix, m)
     eig_vals, eig_vecs = np.linalg.eig(hamiltonian)
 
     # Sort the eigenvectors by energy

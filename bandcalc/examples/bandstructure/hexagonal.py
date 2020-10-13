@@ -7,6 +7,9 @@ import bandcalc
 # Constants
 a = 1
 N = 1000
+m_e = 0.42*bandcalc.constants.physical_constants["electron mass"][0]
+m_h = 0.34*bandcalc.constants.physical_constants["electron mass"][0]
+m = m_e+m_h
 
 # Reciprocal lattice vectors
 b1 = np.array([2*np.pi/(np.sqrt(3)*a), 2*np.pi/a])
@@ -27,7 +30,7 @@ vor = Voronoi(lattice)
 
 # Calculate band structure
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, lattice, N))
+        bandcalc.calc_bandstructure(points, lattice, N, m))
 
 # Plots
 fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11,5))

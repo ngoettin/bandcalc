@@ -23,6 +23,9 @@ shells = args.shells
 # Constants
 a = lattice_constants["MoS2"]*1e9
 N = 1000
+m_e = 0.42*bandcalc.constants.physical_constants["electron mass"][0]
+m_h = 0.34*bandcalc.constants.physical_constants["electron mass"][0]
+mass = m_e+m_h
 
 # Reciprocal lattice vectors
 b1 = np.array([2*np.pi/(np.sqrt(3)*a), 2*np.pi/a])
@@ -37,7 +40,7 @@ rec_m = b-bandcalc.rotate_lattice(b, angle)
 
 # Real space moire lattice vectors
 m = bandcalc.generate_reciprocal_lattice_basis(rec_m)
-
+potential = "MoS2"
 if potential == "MoS2":
     # Moire potential coefficients
     V = 12.4*1e-3*np.exp(1j*81.5*np.pi/180) # in eV
@@ -78,7 +81,7 @@ k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 
 # Calculate the band structure (no potential)
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, rec_moire_lattice, N, potential_fun,
+        bandcalc.calc_bandstructure(points, rec_moire_lattice, N, mass, potential_fun,
             real_space_points=mp_moire,
             moire_potential_pointwise=moire_potential_pointwise))
 
