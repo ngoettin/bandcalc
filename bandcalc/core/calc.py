@@ -1,11 +1,13 @@
 import cupy as cp
 import numpy as np
 import scipy.constants
+import scipy.spatial
 
 import ray
 ray.init(address='auto', redis_password='5241590000000000', ignore_reinit_error=True)
 
 from .generate import generate_k_path
+from .tools import find_vector_index, find_nearest_delaunay_neighbours
 
 hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]
 e = scipy.constants.physical_constants["elementary charge"][0]
@@ -92,6 +94,37 @@ def calc_potential_matrix(lattice, potential_fun=None, use_gpu=False, num_gpus=1
         )
 
     return cp.asnumpy(potential_matrix)
+
+def calc_potential_matrix_from_coeffs(lattice, coeffs):
+    """
+    Calculates matrix of potentials using Fourier coefficients.
+
+    :param lattice: reciprocal lattice
+    :param coeffs: Fourier coefficients
+
+    :type lattice: numpy.ndarray
+    :type coeffs: list | numpy.ndarray
+
+    :rtype: numpy.ndarray
+    """
+
+    triangulation = scipy.spatial.Delaunay(lattice) #pylint: disable=E1101
+    potential_matrix = np.zeros((len(lattice),)*2, dtype=complex)
+
+    zero_vec_index = find_vector_index(lattice, [0,0])
+    if zero_vec_index is None:
+        raise Exception("Could not locate zero vector: Can't compute "\
+                "potential matrix")
+    zero_vec_neighbours = list(find_nearest_delaunay_neighbours(zero_vec_index, triangulation))
+    angles = np.sort(np.round(np.angle(lattice[zero_vec_neighbours].view(complex)), 4)[:,0])
+    angles_dict = dict(zip(angles, coeffs))
+
+    for i, lat_vec in enumerate(lattice):
+        neighbours = list(find_nearest_delaunay_neighbours(i, triangulation))
+        coefficients = [angles_dict[np.round(np.angle(
+            (lattice[neighbour]-lat_vec).view(complex)),4)[0]] for neighbour in neighbours]
+        potential_matrix[i, neighbours] = coefficients
+    return potential_matrix
 
 def calc_bandstructure(k_points, lattice, N, m, potential_fun=None, **kwargs):
     """
