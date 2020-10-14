@@ -76,3 +76,22 @@ def find_k_order_delaunay_neighbours(point_index, delaunay_triangulation, k):
 
     return list(neighbours)
 
+def find_vector_index(lattice, vector):
+    """
+    Finds the index of the first occurence of a vector in a lattice, if it exists.
+
+    :param lattice: Lattice, which should contain the vector of interest
+    :param vector: The vector of interest
+
+    :type lattice: numpy.ndarray
+    :type vector: numpy.ndarray
+
+    :rtype: int
+    """
+
+    try:
+        vec_index = np.where(np.all(lattice == vector, axis=1))[0][0]
+    except IndexError:
+        vec_index = None
+    return vec_index
+
