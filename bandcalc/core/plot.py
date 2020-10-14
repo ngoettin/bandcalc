@@ -144,3 +144,22 @@ def plot_wave_function(ax, grid, wave_function, *plotargs, **plotkargs):
             origin="lower", **plotkargs)
     ax.axis("scaled")
     return mpl_obj
+
+def plot_matrix(matrix):
+    """
+    Convenience function for plotting a matrix
+
+    :param matrix: matrix to plot
+
+    :type matrix: numpy.ndarray
+    """
+
+    fig, ax = plt.subplots()
+    mat = np.flipud(mat)
+    ax.pcolor(mat, ec="k", lw=2)
+    ax.set_xticks(np.arange(mat.shape[1])+0.5)
+    ax.set_xticklabels(range(mat.shape[1]))
+    ax.set_yticks(np.arange(mat.shape[0])+0.5)
+    ax.set_yticklabels(reversed(range(mat.shape[0])))
+    ax.xaxis.tick_top()
+    ax.axis("scaled")
