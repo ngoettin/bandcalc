@@ -154,12 +154,12 @@ def plot_matrix(matrix):
     :type matrix: numpy.ndarray
     """
 
-    fig, ax = plt.subplots()
-    mat = np.flipud(mat)
-    ax.pcolor(mat, ec="k", lw=2)
-    ax.set_xticks(np.arange(mat.shape[1])+0.5)
-    ax.set_xticklabels(range(mat.shape[1]))
-    ax.set_yticks(np.arange(mat.shape[0])+0.5)
-    ax.set_yticklabels(reversed(range(mat.shape[0])))
+    _, ax = plt.subplots()
+    matrix = np.flipud(matrix)
+    ax.pcolor(matrix, ec="k", lw=2)
+    ax.set_xticks(np.arange(matrix.shape[1])+0.5)
+    ax.set_xticklabels(range(matrix.shape[1]))
+    ax.set_yticks(np.arange(matrix.shape[0])+0.5)
+    ax.set_yticklabels(reversed(range(matrix.shape[0])))
     ax.xaxis.tick_top()
     ax.axis("scaled")
