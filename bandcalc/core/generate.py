@@ -5,7 +5,7 @@ import numpy as np
 import scipy.interpolate
 import scipy.spatial
 
-from .tools import find_k_order_delaunay_neighbours
+from .tools import find_k_order_delaunay_neighbours, find_vector_index
 
 def group_lattice_vectors_by_length(lattice):
     """
@@ -65,15 +65,10 @@ def generate_lattice_by_shell(lattice_basis, shell):
     triangulation = scipy.spatial.Delaunay(uncut_lattice) #pylint: disable=E1101
 
     # There has to be a zero vector in the lattice, which should always be the center
-    zero_vec_index = np.where(np.all(uncut_lattice == [0,0], axis=1))[0][0]
+    zero_vec_index = find_vector_index(uncut_lattice, [0,]*uncut_lattice.shape[1])
 
     lattice_indices = find_k_order_delaunay_neighbours(zero_vec_index, triangulation, shell)
-    cut_lattice = uncut_lattice[lattice_indices]
-    
-    # Sort by length and angle
-    cut_lattice = np.array(sorted(cut_lattice, key= lambda vec:
-        (np.abs(vec.view(complex)), np.angle(vec.view(complex)))))
-    return cut_lattice
+    return uncut_lattice[lattice_indices]
 
 def generate_reciprocal_lattice_basis(lattice_basis):
     """
