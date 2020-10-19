@@ -32,4 +32,4 @@ python -m bandcalc.examples.bandstructure.moire_hexagonal --potential MoS2 --ang
 python -m bandcalc.examples.wavefunction.moire_hexagonal --potential MoS2 --angle 1 --shells 8 --energy-level 1
 ```
 In the right plot you see the transparent wavefunction above the real space moire potential.
-![image of moire potentials](example_images/moire_bandstructure.png?raw=true)
+![image of moire potentials](example_images/moire_wavefunction.png?raw=true)
