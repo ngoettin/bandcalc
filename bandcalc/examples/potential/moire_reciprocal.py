@@ -29,11 +29,10 @@ Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
 
 # Reciprocal moire lattice vectors
 G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
-GT = G[0,1:]
-GB = G[1,1:]
+GT = G[0]
+GB = G[1]
 GM = GT-GB
-
-# Sort the reciprocal moire vectors by angle to get the phase right
+GM = np.array(sorted(GM, key=lambda x: np.abs(x.view(complex))))[1:]
 GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
 
 # Real space grid
