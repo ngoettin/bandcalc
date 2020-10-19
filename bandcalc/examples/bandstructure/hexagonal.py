@@ -29,8 +29,11 @@ path = bandcalc.generate_k_path(points, N)
 vor = Voronoi(lattice)
 
 # Calculate band structure
+potential_matrix = bandcalc.calc_potential_matrix(lattice)
+hamiltonian = bandcalc.calc_hamiltonian(lattice, potential_matrix, m)
+
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, lattice, N, m))
+        bandcalc.calc_bandstructure(points, N, hamiltonian))
 
 # Plots
 fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11,5))

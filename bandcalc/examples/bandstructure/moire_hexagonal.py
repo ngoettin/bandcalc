@@ -32,42 +32,19 @@ b1 = np.array([2*np.pi/(np.sqrt(3)*a), 2*np.pi/a])
 b2 = np.array([2*np.pi/(np.sqrt(3)*a), -2*np.pi/a])
 b = np.vstack([b1, b2])
 
-# Real space lattice vectors
-a = bandcalc.generate_reciprocal_lattice_basis(b)
-
 # Reciprocal moire lattice vectors
 rec_m = b-bandcalc.rotate_lattice(b, angle)
 
-# Real space moire lattice vectors
-m = bandcalc.generate_reciprocal_lattice_basis(rec_m)
-potential = "MoS2"
+# Complete reciprocal moire lattice
+rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, shells)
+
 if potential == "MoS2":
     # Moire potential coefficients
     V = 12.4*1e-3*np.exp(1j*81.5*np.pi/180) # in eV
     Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
-    # Reciprocal moire lattice vectors
-    G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
-    GT = G[0,1:]
-    GB = G[1,1:]
-    GM = GT-GB
-
-    # Sort the reciprocal moire vectors by angle to get the phase right
-    GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
-
-    # Generate a real space monkhorst pack lattice
-    mp_moire = bandcalc.generate_monkhorst_pack_raw(m, 100)
-
-    # Calculate pointwise real space moire potential
-    moire_potential_pointwise = bandcalc.calc_moire_potential(mp_moire, GM, Vj)
-
-    potential_fun = bandcalc.calc_moire_potential_reciprocal
+    potential_matrix = bandcalc.calc_potential_matrix_from_coeffs(rec_moire_lattice, Vj)
 elif potential == "off":
-    mp_moire = None
-    moire_potential_pointwise = None
-    potential_fun = None
-
-# Complete reciprocal moire lattice
-rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, shells)
+    potential_matrix = bandcalc.calc_potential_matrix(rec_moire_lattice)
 
 # Calculate MBZ and choose some K-points for the k-path
 vor_m = Voronoi(rec_moire_lattice)
@@ -80,10 +57,9 @@ path = bandcalc.generate_k_path(points, N)
 k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 
 # Calculate the band structure (no potential)
+hamiltonian = bandcalc.calc_hamiltonian(rec_moire_lattice, potential_matrix, mass)
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, rec_moire_lattice, N, mass, potential_fun,
-            real_space_points=mp_moire,
-            moire_potential_pointwise=moire_potential_pointwise))
+        bandcalc.calc_bandstructure(points, N, hamiltonian))
 
 #np.save("bandstructure_moire_{}deg_in_{}eV.npy".format(angle, prefix), bandstructure)
 

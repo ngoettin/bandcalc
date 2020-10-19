@@ -29,8 +29,10 @@ k_names = [r"$\Gamma$", r"X", r"M", r"$\Gamma$", r"R"]
 path = bandcalc.generate_k_path(points, N)
 
 # Calculate band structure
+potential_matrix = bandcalc.calc_potential_matrix(lattice)
+hamiltonian = bandcalc.calc_hamiltonian(lattice, potential_matrix, m)
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, lattice, N, m))
+        bandcalc.calc_bandstructure(points, N, hamiltonian))
 
 # Plots
 fig = plt.figure(figsize=(11,5))

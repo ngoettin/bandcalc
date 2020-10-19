@@ -24,8 +24,6 @@ angle = args.angle
 energy_level = args.energy_level
 shells = args.shells
 
-#pool = Pool(processes=4)
-
 # Constants
 a = lattice_constants["MoS2"]*1e9
 N = 1000
@@ -44,63 +42,48 @@ a = bandcalc.generate_reciprocal_lattice_basis(b)
 # Reciprocal moire lattice vectors
 rec_m = b-bandcalc.rotate_lattice(b, angle)
 
-# Real space moire lattice vectors
-m = bandcalc.generate_reciprocal_lattice_basis(rec_m)
+# Complete reciprocal moire lattice
+rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, shells)
+
+# Find GM
+G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
+GT = G[0]
+GB = G[1]
+GM = GT-GB
+GM = np.array(sorted(GM, key=lambda x: np.abs(x.view(complex))))[1:]
+GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
+
+# Grid size
+size = np.linspace(-50, 50, 500)
+grid = np.meshgrid(size, size)
 
 if potential == "MoS2":
     # Moire potential coefficients
     V = 12.4*1e-3*np.exp(1j*81.5*np.pi/180) # in eV
     Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
-    # Reciprocal moire lattice vectors
-    G = bandcalc.generate_twisted_lattice_by_shell(b, b, angle, 1)
-    GT = G[0,1:]
-    GB = G[1,1:]
-    GM = GT-GB
+    potential_matrix = bandcalc.calc_potential_matrix_from_coeffs(rec_moire_lattice, Vj)
+    
+    # Moire potential for reference
+    moire_potential = bandcalc.calc_moire_potential_on_grid(grid, GM, Vj)
 
-    # Sort the reciprocal moire vectors by angle to get the phase right
-    GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
-
-    # Generate a real space monkhorst pack lattice
-    mp_moire = bandcalc.generate_monkhorst_pack_raw(m, 100)
-
-    # Calculate pointwise real space moire potential
-    moire_potential_pointwise = bandcalc.calc_moire_potential(mp_moire, GM, Vj)
-
-    #potential_fun = functools.partial(bandcalc.calc_moire_potential_reciprocal,
-    #        real_space_points=mp_moire, moire_potential_pointwise=moire_potential_pointwise)
-    potential_fun = bandcalc.calc_moire_potential_reciprocal
 elif potential == "off":
-    potential_fun = None
-
-# Complete reciprocal moire lattice
-rec_moire_lattice = bandcalc.generate_lattice_by_shell(rec_m, shells)
+    potential_matrix = bandcalc.calc_potential_matrix(rec_moire_lattice)
+    moire_potential = np.zeros(grid[0].shape)
 
 # Calculate MBZ and find a K-point
 vor_m = Voronoi(rec_moire_lattice)
 sorted_vertices = np.array(sorted(vor_m.vertices, key=lambda x: np.abs(x.view(complex))))
 k_point = sorted_vertices[0]
-#k_point = np.array([0, 0])
 
 # Calculate the wavefunction
-size = np.linspace(-50, 50, 500)
-grid = np.meshgrid(size, size)
+hamiltonian = bandcalc.calc_hamiltonian(rec_moire_lattice, potential_matrix, m)
 
-wavefunction = bandcalc.calc_wave_function_on_grid(k_point, rec_moire_lattice, grid, m,
-        energy_level, potential_fun,
-        real_space_points=mp_moire,
-        moire_potential_pointwise=moire_potential_pointwise,
-        use_gpu=True)
-
-# Moire potential for reference
-moire_potential = bandcalc.calc_moire_potential_on_grid(grid, GM, Vj)
+wavefunction = bandcalc.calc_wave_function_on_grid(k_point, rec_moire_lattice, grid,
+        hamiltonian, energy_level)
 
 # Energies for reference
-potential_matrix = bandcalc.calc_potential_matrix(rec_moire_lattice, potential_fun,
-        use_gpu=True, 
-        real_space_points=mp_moire,
-        moire_potential_pointwise=moire_potential_pointwise)
 energies, prefix = bandcalc.get_unit_prefix(np.sort(np.linalg.eigvals(
-        bandcalc.calc_hamiltonian(k_point, rec_moire_lattice, potential_matrix))))
+        bandcalc.calc_hamiltonian(rec_moire_lattice, potential_matrix, m)(k_point))))
 energy_slice = energies[
     energy_level-5 if energy_level-5>-1 else None:
     energy_level+5 if energy_level+5<len(energies) else None]
@@ -112,7 +95,10 @@ energy = np.real(energies[energy_level])
 fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(11, 5))
 
 bandcalc.plot_lattice(axs[0], rec_moire_lattice, "ko")
-    
+axs[0].text(0.05, 0.95, f"{angle}°", transform=axs[0].transAxes, va="top", bbox={"fc": "white", "alpha": 0.2})
+axs[0].set_xlabel(r"nm$^{-1}$")
+axs[0].set_ylabel(r"nm$^{-1}$")
+
 bandcalc.plot_moire_potential(axs[1], grid, moire_potential, alpha=0.6, cmap="Greys_r", zorder=0)
 bandcalc.plot_wave_function(axs[1], grid, np.abs(wavefunction)**2, alpha=0.4, cmap="jet", zorder=1)
 axs[1].set_xlabel("nm")

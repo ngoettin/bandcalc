@@ -39,23 +39,21 @@ def eps_0(k, G, m):
 
     return hbar**2/(2*m)*np.sum((k-G)**2, axis=1)*1e18/e # in eV
 
-def calc_hamiltonian(k, lattice, potential_matrix, m):
+def calc_hamiltonian(lattice, potential_matrix, m):
     """
-    Construct the hamiltonian for any given k in a specified lattice
+    Construct the hamiltonian in a specified lattice as a function of k
 
-    :param k: k vector of the particle
     :param lattice: reciprocal lattice
     :param m: particle mass
 
-    :type k: numpy.ndarray
     :type lattice: numpy.ndarray
     :type m: float
 
-    :rtype: numpy.ndarray
+    :rtype: function
     """
 
-    diagonal = np.diag(eps_0(k, lattice, m))
-    return potential_matrix + diagonal
+    diagonal = lambda k: np.diag(eps_0(k, lattice, m))
+    return lambda k: potential_matrix + diagonal(k)
 
 def calc_potential_matrix(lattice, potential_fun=None, use_gpu=False, num_gpus=1, **kwargs):
     """
@@ -111,7 +109,7 @@ def calc_potential_matrix_from_coeffs(lattice, coeffs):
     triangulation = scipy.spatial.Delaunay(lattice) #pylint: disable=E1101
     potential_matrix = np.zeros((len(lattice),)*2, dtype=complex)
 
-    zero_vec_index = find_vector_index(lattice, [0,0])
+    zero_vec_index = find_vector_index(lattice, [0,]*lattice.shape[1])
     if zero_vec_index is None:
         raise Exception("Could not locate zero vector: Can't compute "\
                 "potential matrix")
@@ -126,33 +124,29 @@ def calc_potential_matrix_from_coeffs(lattice, coeffs):
         potential_matrix[i, neighbours] = coefficients
     return potential_matrix
 
-def calc_bandstructure(k_points, lattice, N, m, potential_fun=None, **kwargs):
+def calc_bandstructure(k_points, N, hamiltonian):
     """
-    Calculate the band structure of a lattice along a given k path with N samples
+    Calculate the band structure of a hamiltonian along a given k path with N samples
 
     :param k_points: k points
-    :param lattice: reciprocal lattice
     :param N: number of samples
-    :param m: particle mass
-    :param potential_fun: See :func:`calc_potential_matrix`
+    :param hamiltonian: the hamiltonian to calculate the bandstructure with
+        (as a function of k)
 
     :type k_points: numpy.ndarray
-    :type lattice: numpy.ndarray
     :type N: int
-    :type m: float
-    :type potential_fun:
+    :type hamiltonian: function
 
     :rtype: numpy.ndarray
     """
 
-    potential_matrix = calc_potential_matrix(lattice, potential_fun, **kwargs)
     path = generate_k_path(k_points, N)
     eig_vals = np.array(
-            [np.linalg.eigvals(calc_hamiltonian(k, lattice, potential_matrix, m)) for k in path]
+            [np.linalg.eigvals(hamiltonian(k)) for k in path]
     )
     return eig_vals
 
-def calc_wave_function_on_grid(k_point, lattice, grid, m, energy_level=0, potential_fun=None, **kwargs):
+def calc_wave_function_on_grid(k_point, lattice, grid, hamiltonian, energy_level=0):
     r"""
     Calculate the wave function (not the absolute square) of a system on a real space grid.
     It is assumed, that the wave function :math:`|\chi\rangle` can be written as
@@ -175,16 +169,15 @@ def calc_wave_function_on_grid(k_point, lattice, grid, m, energy_level=0, potent
     :param k_point: :math:`\mathbf{Q}`
     :param lattice: :math:`\mathbf{G}^{\text{M}}`
     :param grid: :math:`\mathbf{r}`
-    :param m: particle mass
+    :param hamiltonian: Hamiltonian to calculate the eigenstates with
+        (as a function of k)
     :param energy_level: :math:`\alpha`
-    :param potential_fun: See :func:`calc_potential_matrix`
 
     :type k_point: numpy.ndarray
     :type lattice: numpy.ndarray
     :type grid: list(numpy.ndarray)
-    :type m: float
+    :type hamiltonian: function
     :type energy_level: int
-    :type potential_fun:
 
     :rtype: numpy.ndarray
     """
@@ -194,8 +187,7 @@ def calc_wave_function_on_grid(k_point, lattice, grid, m, energy_level=0, potent
                           "There are only {} energy levels in the system "
                           "and counting starts from 0.").format(
                               energy_level, len(lattice)))
-    potential_matrix = calc_potential_matrix(lattice, potential_fun, **kwargs)
-    hamiltonian = calc_hamiltonian(k_point, lattice, potential_matrix, m)
+    hamiltonian = hamiltonian(k_point)
     eig_vals, eig_vecs = np.linalg.eig(hamiltonian)
 
     # Sort the eigenvectors by energy
