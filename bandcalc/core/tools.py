@@ -76,8 +76,6 @@ def find_k_order_delaunay_neighbours(point_index, delaunay_triangulation, k, onl
                 "be returned")
 
     neighbours = newest_neighbours = {point_index}
-#    neighbours = newest_neighbours = find_nearest_delaunay_neighbours(point_index,
-#            delaunay_triangulation)
     for _ in range(k):
         newest_neighbours = set.union(*[
             find_nearest_delaunay_neighbours(neighbour, delaunay_triangulation)
