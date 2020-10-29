@@ -4,7 +4,7 @@ import scipy.constants
 import scipy.spatial
 
 import ray
-ray.init(address='auto', redis_password='5241590000000000', ignore_reinit_error=True)
+ray.init(address='auto', _redis_password='5241590000000000', ignore_reinit_error=True)
 
 from .generate import generate_k_path
 from .tools import find_vector_index, find_nearest_delaunay_neighbours
