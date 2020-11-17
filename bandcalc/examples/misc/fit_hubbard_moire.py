@@ -26,9 +26,9 @@ angle = args.angle
 shells = args.shells
 
 ## DEBUG
-potential = "MoS2"
-angle = 2
-shells = 2
+#potential = "MoS2"
+#angle = 2
+#shells = 3
 
 # Constants
 a = lattice_constants["MoS2"]*1e9
@@ -84,22 +84,33 @@ bandstructure, prefix = bandcalc.get_unit_prefix(
 # Construct function
 number_nearest_neighbours = 3
 triangulation = Delaunay(moire_lattice)
+zero_vec_ind = bandcalc.find_vector_index(moire_lattice, [0, 0])
+nn = np.vstack([moire_lattice[bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
+       only_k_shell=True, include_point_index=False)] for k in [1,2,3]])
+t_lengths = [len(bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k, 
+       only_k_shell=True, include_point_index=False)) for k in [1,2,3]]
+#nn_lengths = np.array(list(map(lambda x: np.abs(x.view(complex)), nn_lengths)))
 def energy_function(k, t1, t2, t3, offset):
-
-    energy_matrix = np.zeros((len(k), len(moire_lattice), len(moire_lattice)), dtype=complex)
-
-    for i, vec in enumerate(moire_lattice):
-        for order in range(1, number_nearest_neighbours+1):
-            neighbours = bandcalc.find_k_order_delaunay_neighbours(i, triangulation,
-                    order, only_k_shell=True, include_point_index=False)
-            exp = np.exp(-1j*np.dot(k, (moire_lattice[neighbours]-vec).T))
-            t = [t1, t2, t3][order-1]
-            energy_matrix[..., i, neighbours] = exp*t
-    return np.real(np.sum(energy_matrix, axis=(1,2)) + offset)
+   t = np.hstack([[t1]*t_lengths[0], [t2]*t_lengths[1], [t3]*t_lengths[2]])
+   energy = np.real(np.dot(t, np.exp(-1j*np.dot(k, nn.T).T)))
+   return energy + offset
+#def energy_function(k, t1, t2, t3, offset):
+#
+#    energy_matrix = np.zeros((len(k), len(moire_lattice), len(moire_lattice)), dtype=complex)
+#
+#    for i, vec in enumerate(moire_lattice):
+#        for order in range(1, number_nearest_neighbours+1):
+#            neighbours = bandcalc.find_k_order_delaunay_neighbours(i, triangulation,
+#                    order, only_k_shell=True, include_point_index=False)
+#            exp = np.exp(-1j*np.dot(k, (moire_lattice[neighbours]-vec).T))
+#            t = [t1, t2, t3][order-1]
+#            energy_matrix[..., i, neighbours] = exp*t
+#    return np.real(np.sum(energy_matrix, axis=(1,2)) + offset)
 
 # Fit function
 lowest_band = np.real(np.sort(bandstructure)[:,0])
 popt, pcov = curve_fit(energy_function, path, lowest_band)
+print("Params:", popt, "\nErrors:", np.sqrt(np.diag(pcov)))
 
 # Plot the results
 fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(11,5))
