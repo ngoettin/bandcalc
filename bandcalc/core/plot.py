@@ -1,4 +1,7 @@
 import numpy as np
+import scipy.spatial
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 import matplotlib.pyplot as plt
 
 def set_axes_equal(ax):
@@ -163,3 +166,36 @@ def plot_matrix(matrix):
     ax.set_yticklabels(reversed(range(matrix.shape[0])))
     ax.xaxis.tick_top()
     ax.axis("scaled")
+
+def plot_trisurface_3d(x, y, z, faces="Delaunay"):
+    """
+    Plots any triangular surface with OpenGL acceleration.
+    Use this for surface plots with many data points.
+
+    :param x: x coordinates. Should be a 1D array
+    :param y: y coordinates. Should be a 1D array
+    :param z: z coordinates. Should be a 1D array
+    :param faces: calculated faces for the vertices. Default will use Delaunay
+        to automatically get surfaces.
+
+    :type x: numpy.ndarray
+    :type y: numpy.ndarray
+    :type z: numpy.ndarray
+    :type faces: str | numpy.ndarray
+    """
+
+    app = pg.mkQApp()
+    view = gl.GLViewWidget()
+
+    vertices = np.vstack([x, y, z]).T
+    if faces == "Delaunay":
+        triangulation = scipy.spatial.Delaunay(np.vstack([x, y]).T) #pylint: disable=E1101
+        faces = triangulation.simplices
+
+    meshdata = gl.MeshData(vertexes=vertices, faces=faces)
+    mesh = gl.GLMeshItem(meshdata=meshdata, shader="normalColor",
+            smooth=True, computeNormals=True)
+
+    view.addItem(mesh)
+    view.show()
+    app.exec_()
