@@ -341,6 +341,7 @@ def _wannier_summand_gpu(c_alpha, Q, GM, r, R):
 
     for the wannier function.
     """
+
     return (c_alpha
             *cmath.exp(
                 -1j*(
@@ -360,17 +361,17 @@ def _wannier_gpu(res, c_alpha, Q, GM, r, R):
     Calculate :py:func`summand` for every :math:`\mathbf{Q}` and
     :math:`\mathbf{G}^\text{M}`.
     """
-    
+
     i, j, k = cuda.grid(3) #pylint: disable=E0633,E1121
 
     if i < res.shape[0] and j < res.shape[1] and k < res.shape[2]:
         res[i, j, k] = _wannier_summand_gpu(c_alpha[j, k], Q[j], GM[k], r[i], R)
 
-def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors, r, R, 
+def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors, r, R,
         band_index=0):
     r"""
     Calculate the wannier function
-    
+
     .. math::
         w^{(\alpha)}(\mathbf{r} - \mathbf{R}) = \sum_{\mathbf{Q}, \mathbf{G}^\text{M}}
         c^{(\alpha)}_{\mathbf{Q}-\mathbf{G}^{\text{M}}}
@@ -379,7 +380,7 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
 
     where
 
-     * the :math:`c^{(\alpha)}_{\mathbf{Q}-\mathbf{G}^{\text{M}}}` are 
+     * the :math:`c^{(\alpha)}_{\mathbf{Q}-\mathbf{G}^{\text{M}}}` are
        obtained from the *hamiltonian* evaluated at each :math:`\mathbf{Q} \in` *k_points*.
        These are the Bloch functions coefficients.
      * :math:`\mathbf{Q} \in` *k_points*
@@ -398,7 +399,7 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     :type r: numpy.ndarray
     :type R: numpy.ndarray
     """
-    
+
     dtype = np.float32
 
     # Calculate Bloch coefficients c_alpha at every k point
