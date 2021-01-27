@@ -5,8 +5,8 @@ import numpy as np
 import scipy.constants
 import scipy.spatial
 
-import ray
-ray.init(address='auto', _redis_password='5241590000000000', ignore_reinit_error=True)
+#import ray
+#ray.init(address='auto', _redis_password='5241590000000000', ignore_reinit_error=True)
 
 from numba import cuda
 
@@ -173,7 +173,7 @@ def calc_eigenvector_for_bandindex(matrix, band_index=0):
     try:
         eig_vec = eig_vecs[:, band_index]
     except IndexError:
-        print(f"Band index can only be in the range 0..{eig_vecs.shape[1]}")
+        print(f"Band index can only be in the range 0..{eig_vecs.shape[1]-1}")
         return None
     return eig_vec
 
@@ -406,13 +406,13 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     c_alpha = []
     for k_point in k_points:
         eig_vec = calc_eigenvector_for_bandindex(hamiltonian(k_point), band_index)
-        c_alpha.append(np.real(eig_vec))
+        c_alpha.append(eig_vec)
     c_alpha = np.array(c_alpha)
 
     # Transfer all variables to GPU
     k_points_gpu = cuda.to_device(k_points.astype(dtype))
     reciprocal_lattice_vectors_gpu = cuda.to_device(reciprocal_lattice_vectors.astype(dtype))
-    c_alpha_gpu = cuda.to_device(c_alpha.astype(dtype))
+    c_alpha_gpu = cuda.to_device(c_alpha.astype(np.complex64))
     r_gpu = cuda.to_device(r.astype(dtype))
     R_gpu = cuda.to_device(R.astype(dtype))
 
@@ -435,4 +435,5 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     del result_gpu
 
     wannier_function = np.sum(result, axis=(1,2))
+#    wannier_function = wannier_function/np.sum(np.abs(wannier_function)**2)
     return wannier_function
