@@ -167,7 +167,7 @@ def plot_matrix(matrix):
     ax.xaxis.tick_top()
     ax.axis("scaled")
 
-def plot_trisurface_3d(x, y, z, faces="Delaunay"):
+def plot_trisurface_3d(x, y, z, faces="Delaunay", autoscale_z=True):
     """
     Plots any triangular surface with OpenGL acceleration.
     Use this for surface plots with many data points.
@@ -186,6 +186,9 @@ def plot_trisurface_3d(x, y, z, faces="Delaunay"):
 
     app = pg.mkQApp()
     view = gl.GLViewWidget()
+
+    if autoscale_z:
+        z = z/z.max()*max(x.max(), y.max())
 
     vertices = np.vstack([x, y, z]).T
     if faces == "Delaunay":
