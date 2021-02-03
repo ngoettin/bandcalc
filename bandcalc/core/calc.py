@@ -368,7 +368,7 @@ def _wannier_gpu(res, c_alpha, Q, GM, r, R):
         res[i, j, k] = _wannier_summand_gpu(c_alpha[j, k], Q[j], GM[k], r[i], R)
 
 def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors, r, R,
-        band_index=0):
+        band_index=0, c_alpha=None):
     r"""
     Calculate the wannier function
 
@@ -401,13 +401,14 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     """
 
     dtype = np.float32
-
-    # Calculate Bloch coefficients c_alpha at every k point
-    c_alpha = []
-    for k_point in k_points:
-        eig_vec = calc_eigenvector_for_bandindex(hamiltonian(k_point), band_index)
-        c_alpha.append(eig_vec)
-    c_alpha = np.array(c_alpha)
+    
+    if c_alpha is None:
+        # Calculate Bloch coefficients c_alpha at every k point
+        c_alpha = []
+        for k_point in k_points:
+            eig_vec = calc_eigenvector_for_bandindex(hamiltonian(k_point), band_index)
+            c_alpha.append(eig_vec)
+        c_alpha = np.array(c_alpha)
 
     # Transfer all variables to GPU
     k_points_gpu = cuda.to_device(k_points.astype(dtype))
