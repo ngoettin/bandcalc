@@ -3,6 +3,7 @@ import numpy as np
 from bandcalc.constants import unit_prefixes
 
 from functools import lru_cache
+from scipy.spatial import Voronoi, ConvexHull, KDTree # pylint: disable=E0611
 
 def get_unit_prefix(data):
     """
@@ -113,3 +114,33 @@ def find_vector_index(lattice, vector):
         vec_index = None
     return vec_index
 
+def integrate_2d_func_regular_grid(func_vals, grid_points):
+    """
+    Integrate precalculated function values over a regular grid.
+    Area elements will be calculated as the size of a Voronoi cell.
+
+    :param func_vals: *n* function values
+    :param grid_points: (*n*, 2) array of grid points
+
+    :type func_vals: numpy.ndarray
+    :type grid_points: numpy.ndarray
+
+    :rtype: float
+    """
+
+    # Get point somewhere in the center of the grid to (most likely) ensuere
+    # a closed voronoi cell
+    tree = KDTree(grid_points)
+    center_point_ind = tree.query(np.average(grid_points, axis=0))[1]
+
+    # Get the point region of the central grid point, find the corresponding
+    # vertex indices and get the vertex points
+    voronoi = Voronoi(grid_points)
+    innermost_cell_points = voronoi.vertices[voronoi.regions[voronoi.point_region[center_point_ind]]]
+
+    # Calculate size of innermost cell
+    dA = ConvexHull(innermost_cell_points).volume
+
+    # Integrate
+    integral = np.sum(func_vals)*dA
+    return integral

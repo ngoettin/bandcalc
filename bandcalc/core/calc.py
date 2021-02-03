@@ -11,7 +11,7 @@ import scipy.spatial
 from numba import cuda
 
 from .generate import generate_k_path
-from .tools import find_vector_index, find_nearest_delaunay_neighbours
+from .tools import find_vector_index, find_nearest_delaunay_neighbours, integrate_2d_func_regular_grid
 
 hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]
 e = scipy.constants.physical_constants["elementary charge"][0]
@@ -435,5 +435,8 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     del result_gpu
 
     wannier_function = np.sum(result, axis=(1,2))
-#    wannier_function = wannier_function/np.sum(np.abs(wannier_function)**2)
+
+    # Normalize wannier function
+    integral = integrate_2d_func_regular_grid(np.abs(wannier_function)**2, r)
+    wannier_function = wannier_function/np.sqrt(integral)
     return wannier_function
