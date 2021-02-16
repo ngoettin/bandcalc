@@ -114,6 +114,31 @@ def find_vector_index(lattice, vector):
         vec_index = None
     return vec_index
 
+def get_volume_element_regular_grid(grid_points):
+    """
+    Calculate unit cell volume
+
+    :param grid_points: points of the grid
+
+    :type grid_points: numpy.ndarray
+
+    :rtype: float
+    """
+
+    # Get point somewhere in the center of the grid to (most likely) ensure
+    # a closed voronoi cell
+    tree = KDTree(grid_points)
+    center_point_ind = tree.query(np.average(grid_points, axis=0))[1]
+
+    # Get the point region of the central grid point, find the corresponding
+    # vertex indices and get the vertex points
+    voronoi = Voronoi(grid_points)
+    innermost_cell_points = voronoi.vertices[voronoi.regions[voronoi.point_region[center_point_ind]]]
+
+    # Calculate size of innermost cell
+    volume = ConvexHull(innermost_cell_points).volume
+    return volume
+
 def integrate_2d_func_regular_grid(func_vals, grid_points):
     """
     Integrate precalculated function values over a regular grid.
@@ -128,18 +153,7 @@ def integrate_2d_func_regular_grid(func_vals, grid_points):
     :rtype: float
     """
 
-    # Get point somewhere in the center of the grid to (most likely) ensuere
-    # a closed voronoi cell
-    tree = KDTree(grid_points)
-    center_point_ind = tree.query(np.average(grid_points, axis=0))[1]
-
-    # Get the point region of the central grid point, find the corresponding
-    # vertex indices and get the vertex points
-    voronoi = Voronoi(grid_points)
-    innermost_cell_points = voronoi.vertices[voronoi.regions[voronoi.point_region[center_point_ind]]]
-
-    # Calculate size of innermost cell
-    dA = ConvexHull(innermost_cell_points).volume
+    dA = get_volume_element_regular_grid(grid_points)
 
     # Integrate
     integral = np.sum(func_vals)*dA
