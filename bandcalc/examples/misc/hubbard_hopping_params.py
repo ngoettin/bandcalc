@@ -2,6 +2,7 @@
 All parameters are from PRL 121 026402 (2018)
 """
 
+import pickle
 import argparse
 
 import numpy as np
@@ -22,18 +23,16 @@ args = parser.parse_args()
 potential = args.potential
 shells = args.shells
 
-## DEBUG
-#potential = "MoS2"
-#angle = 2
-#shells = 3
-
 # Constants
 a = lattice_constants["MoS2"]*1e9
 N = 1000
 mass = 0.35*physical_constants["electron mass"][0]
 
+with open("bandcalc/examples/misc/wannier_pickle/moire_vector_lengths.pickle", "rb") as f:
+    m_lens = pickle.load(f)
+
 res = []
-for angle in np.linspace(0.1, 3):
+for angle in np.linspace(1, 3, num=10):
     # Reciprocal lattice vectors
     b1 = np.array([2*np.pi/(np.sqrt(3)*a), 2*np.pi/a])
     b2 = np.array([2*np.pi/(np.sqrt(3)*a), -2*np.pi/a])
@@ -85,25 +84,13 @@ for angle in np.linspace(0.1, 3):
     zero_vec_ind = bandcalc.find_vector_index(moire_lattice, [0, 0])
     nn = np.vstack([moire_lattice[bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
            only_k_shell=True, include_point_index=False)] for k in [1,2,3]])
-    t_lengths = [len(bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k, 
+    t_lengths = [len(bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
            only_k_shell=True, include_point_index=False)) for k in [1,2,3]]
-    #nn_lengths = np.array(list(map(lambda x: np.abs(x.view(complex)), nn_lengths)))
+
     def energy_function(k, t1, t2, t3, offset):
        t = np.hstack([[t1]*t_lengths[0], [t2]*t_lengths[1], [t3]*t_lengths[2]])
        energy = np.real(np.dot(t, np.exp(-1j*np.dot(k, nn.T).T)))
        return energy + offset
-    # def energy_function(k, t1, t2, t3, offset):
-
-    #     energy_matrix = np.zeros((len(k), len(moire_lattice), len(moire_lattice)), dtype=complex)
-
-    #     for i, vec in enumerate(moire_lattice):
-    #         for order in range(1, number_nearest_neighbours+1):
-    #             neighbours = bandcalc.find_k_order_delaunay_neighbours(i, triangulation,
-    #                     order, only_k_shell=True, include_point_index=False)
-    #             exp = np.exp(-1j*np.dot(k, (moire_lattice[neighbours]-vec).T))
-    #             t = [t1, t2, t3][order-1]
-    #             energy_matrix[..., i, neighbours] = exp*t
-    #     return np.real(np.sum(energy_matrix, axis=(1,2)) + offset)
 
     # Fit function
     lowest_band = np.real(np.sort(bandstructure)[:,0])
@@ -116,11 +103,10 @@ for angle in np.linspace(0.1, 3):
 
     print(angle)
 
-res = np.flipud(np.array(res))
-plt.plot(res[:,0], -1*res[:,1:4]*1e3)
-plt.gca().invert_xaxis()
+res = np.array(res)
+plt.plot(list(m_lens.values()), res[:,1:4]*1e3)
 plt.legend([rf"$t_{i}$" for i in [1,2,3]])
-plt.xlabel("angle in deg")
+plt.xlabel("$a_M$ in nm")
 plt.ylabel("t in meV")
 plt.tight_layout()
 plt.show()
