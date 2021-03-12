@@ -15,11 +15,6 @@ from .tools import find_vector_index, find_nearest_delaunay_neighbours, integrat
 
 hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]
 e = scipy.constants.physical_constants["elementary charge"][0]
-#m_e = 0.42*scipy.constants.physical_constants["electron mass"][0]
-#m_h = 0.34*scipy.constants.physical_constants["electron mass"][0]
-#m = m_e+m_h
-m = 0.35*scipy.constants.physical_constants["electron mass"][0]
-V = 0
 
 def eps_0(k, G, m):
     r"""
@@ -79,22 +74,6 @@ def calc_potential_matrix(lattice, potential_fun=None, use_gpu=False, num_gpus=1
     elif isinstance(potential_fun, (float, int)):
         potential_matrix = np.ones((lattice.shape[0],)*2)*potential_fun
         np.fill_diagonal(potential_matrix, 0)
-    elif callable(potential_fun):
-        if use_gpu:
-            xp = cp
-            potential_fun = ray.remote(num_gpus=num_gpus)(potential_fun)
-            lattice = cp.array(lattice)
-            kwargs = {k: cp.array(v) if isinstance(v, np.ndarray) else v
-                    for k,v in kwargs.items()}
-        else:
-            xp = np
-            potential_fun = ray.remote(potential_fun)
-        lattice_matrix = xp.array([lattice - vec for vec in lattice])
-        potential_matrix = xp.array(
-                ray.get([potential_fun.remote(lattice, use_gpu=use_gpu, **kwargs)
-                    for lattice in lattice_matrix])
-        )
-
     return cp.asnumpy(potential_matrix)
 
 def calc_potential_matrix_from_coeffs(lattice, coeffs):
@@ -113,7 +92,7 @@ def calc_potential_matrix_from_coeffs(lattice, coeffs):
     triangulation = scipy.spatial.Delaunay(lattice) #pylint: disable=E1101
     potential_matrix = np.zeros((len(lattice),)*2, dtype=complex)
 
-    zero_vec_index = find_vector_index(lattice, [0,]*lattice.shape[1])
+    zero_vec_index = find_vector_index(lattice, [0]*lattice.shape[1])
     if zero_vec_index is None:
         raise Exception("Could not locate zero vector: Can't compute "\
                 "potential matrix")
@@ -168,13 +147,13 @@ def calc_eigenvector_for_bandindex(matrix, band_index=0):
         eig_vals, eig_vecs = np.linalg.eig(matrix)
     except Exception as e:
         print(f"Could not calculate eigenvectors and eigenvalues. Error:\n{e}")
-        return None
+        return
     eig_vecs = eig_vecs[:, np.argsort(eig_vals)]
     try:
         eig_vec = eig_vecs[:, band_index]
     except IndexError:
         print(f"Band index can only be in the range 0..{eig_vecs.shape[1]-1}")
-        return None
+        return
     return eig_vec
 
 def calc_wave_function_on_grid(k_point, lattice, grid, hamiltonian, band_index=0):
