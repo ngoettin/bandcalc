@@ -5,7 +5,7 @@ import numpy as np
 import scipy.interpolate
 import scipy.spatial
 
-from .tools import find_k_order_delaunay_neighbours, find_vector_index
+from .tools import find_k_order_delaunay_neighbours, find_vector_index, solve_triangle_ssa
 
 def group_lattice_vectors_by_length(lattice):
     """
@@ -215,8 +215,225 @@ def generate_monkhorst_pack_set(lattice_basis, q):
         for neighbour in position_dict.keys()])
     return monkhorst_pack_set
 
+def generate_circle_grid_in_polar(r, R, num_points_angle, num_points_radius,
+        return_polar=False):
+    """
+    Parameterize the area of a circle of radius *r* at position *R*
+    in polar coordinates. Returns grid and area element.
 
+    :param r: radius of the circle
+    :param R: position of the center of the circle in cartesian coordinates
+    :param num_points_angle: number of samples in angle direction
+    :param num_points_radius: number of samples in radius direction
+    :param return_polar: whether to return the resulting array in polar coordinates or not
 
+    :type r: float
+    :type R: numpy.ndarray
+    :type num_points_angle: int
+    :type num_points_radius: int
+    :type return_polar: bool
 
+    :rtype: (float, numpy.ndarray)
+    """
 
+    R_len = np.linalg.norm(R)
+    R_angle = np.angle(R.view(complex))[0]
 
+    if r>=R_len:
+        dr = r/num_points_radius
+        dphi = 2*np.pi/num_points_angle
+
+        phi = np.arange(0, 2*np.pi, dphi)
+        gamma = R_angle - phi
+        r_ = []
+        for gamma_ in gamma:
+            triangle_solution = solve_triangle_ssa(r, R_len, gamma_)
+            r_.append(np.arange(0, triangle_solution["+"], dr))
+    else:
+        dr = 2*r/num_points_radius
+        dphi = 2*np.arcsin(r/R_len)/num_points_angle
+
+        phi = np.arange(
+                R_angle - np.arcsin(r/R_len),
+                R_angle + np.arcsin(r/R_len),
+                dphi
+                )[1:-1]
+        gamma = R_angle - phi
+        r_ = []
+        for gamma_ in gamma:
+            triangle_solution = solve_triangle_ssa(r, R_len, gamma_)
+            r_.append(np.arange(triangle_solution["-"], triangle_solution["+"], dr))
+
+    r_full = np.concatenate(r_).ravel()
+    r_nums = list(map(len, r_))
+    phi_full = np.repeat(phi, r_nums)
+
+    # Sort radius first (but keep center; this will result in some kind of squeezed ball)
+    ind = np.lexsort((phi_full, np.abs(r_full-R_len)))
+
+    dA = dr*dphi
+
+    if return_polar:
+        return np.array([r_full[ind], phi_full[ind]]).T
+    return dA, np.array([r_full[ind]*np.cos(phi_full[ind]), r_full[ind]*np.sin(phi_full[ind])]).T
+
+def generate_random_points_in_circle_in_polar(r, R, num_points, return_polar=False):
+    """
+    Generate random points inside or on the edge of a circle in polar coordinates.
+    Useful for monte carlo integration.
+
+    :param r: radius of the circle
+    :param R: position of the center of the circle in cartesian coordinates
+    :param num_points: number of samples
+    :param return_polar: whether to return the resulting array in polar coordinates or not
+
+    :type r: float
+    :type R: numpy.ndarray
+    :type num_points: int
+    :type return_polar: bool
+
+    :rtype: (float, numpy.ndarray)
+    """
+
+    R_len = np.linalg.norm(R)
+    R_angle = np.angle(R.view(complex))[0]
+
+    if r>=R_len:
+        phi = np.random.uniform(0, 2*np.pi, size=(num_points,))
+
+        gamma = R_angle - phi
+        triangle_solution = solve_triangle_ssa(r, R_len, gamma)
+        r_ = np.random.uniform(0, triangle_solution["+"])
+    else:
+        phi = np.random.uniform(
+                R_angle - np.arcsin(r/R_len),
+                R_angle + np.arcsin(r/R_len),
+                size=(num_points,))
+        gamma = R_angle - phi
+        triangle_solution = solve_triangle_ssa(r, R_len, gamma)
+        r_ = np.random.uniform(triangle_solution["-"], triangle_solution["+"])
+
+    if return_polar:
+        return np.array([r_, phi]).T
+    return np.array([r_*np.cos(phi), r_*np.sin(phi)]).T
+
+def generate_random_points_in_circle_in_polar_vec(r, R, num_points, return_polar=False):
+    """
+    Generate random points inside or on the edge of a circle in polar coordinates.
+    Useful for monte carlo integration.
+
+    This function is vectorized and will return multiple circles for different centers.
+    The points for circle with center R[i] are stored in res[i].
+
+    :param r: radius of the circle
+    :param R: position of the center of the circle in cartesian coordinates
+    :param num_points: number of samples
+    :param return_polar: whether to return the resulting array in polar coordinates or not
+
+    :type r: float
+    :type R: numpy.ndarray
+    :type num_points: int
+    :type return_polar: bool
+
+    :rtype: (float, numpy.ndarray)
+    """
+
+    R = np.array(R, order="C")
+    if len(R.shape) == 2:
+        R_len = np.linalg.norm(R, axis=1)
+        R_angle = np.angle(R.view(complex)).reshape(-1)
+    elif len(R.shape) == 1:
+        R_len = np.linalg.norm(R)
+        R_angle = np.angle(R.view(complex))[0]
+    else:
+        print(f"Invalid shape for R {R.shape}")
+
+    with np.errstate(invalid="ignore"):
+        phi = np.random.uniform(
+            np.nan_to_num(R_angle - np.arcsin(r/R_len))*(r<R_len),
+            np.nan_to_num(R_angle + np.arcsin(r/R_len))*(r<R_len) + 2*np.pi*(r>=R_len),
+            size=(num_points, len(R))
+            )
+    gamma = R_angle - phi
+    triangle_solution = solve_triangle_ssa(r, R_len, gamma)
+    r_ = np.random.uniform(
+        triangle_solution["-"]*(r<R_len),
+        triangle_solution["+"]
+       )
+
+    if return_polar:
+        return np.array([r_, phi]).T
+    return np.array([r_*np.cos(phi), r_*np.sin(phi)]).T
+
+def generate_annulus_segement_in_polar(r, R, num_points_angle, num_points_radius,
+        return_polar=False, full_output=False):
+    """
+    Parameterize an annulus segment in polar coordinates. This is useful for calculations
+    in polar coordinates which utilize routines, that rely on strictly rectangular grids.
+
+    If :math:`|R|<|r|`, this will result in a circle, which is centered at :math:`(0, 0)` and has
+    a radius of :math:`|R|+|r|`.
+
+    Returns grids.
+
+    :param r: half of the segment's length in radial dimension
+    :param R: position of the center of the segment in cartesian coordinates
+    :param num_points_angle: number of samples in angle direction
+    :param num_points_radius: number of samples in radius direction
+    :param return_polar: whether to return the resulting array in polar coordinates or not
+    :param full_output: returns dict with different forms of the same output, which may be
+        useful for some calculations
+
+    :type r: float
+    :type R: numpy.ndarray
+    :type num_points_angle: int
+    :type num_points_radius: int
+    :type return_polar: bool
+    :type full_output: bool
+
+    :rtype: (float, numpy.ndarray)
+    """
+
+    R_len = np.linalg.norm(R)
+    R_angle = np.angle(R.view(complex))[0]
+
+    if r>=R_len:
+        r_, dr = np.linspace(0, r+R_len, num_points_radius, retstep=True)
+        phi, dphi = np.linspace(0, 2*np.pi, num_points_angle, retstep=True)
+    else:
+        r_, dr = np.linspace(R_len-r, R_len+r, num_points_radius, retstep=True)
+        phi, dphi = np.linspace(R_angle-np.arcsin(r/R_len), R_angle+np.arcsin(r/R_len),
+                num_points_angle, retstep=True)
+
+    r__, phi_ = np.meshgrid(r_, phi)
+    r_full = r__.ravel()
+    phi_full = phi_.ravel()
+
+    # Sort radius first (but keep center; this will result in some kind of squeezed ball)
+    ind = np.lexsort((phi_full, np.abs(r_full-R_len)))
+
+    dA = dr*dphi
+
+    if return_polar:
+        return np.array([r_full[ind], phi_full[ind]]).T
+    if full_output:
+        return {
+                "cart_matrix": np.array(
+                    [
+                        r_full[ind]*np.cos(phi_full[ind]),
+                        r_full[ind]*np.sin(phi_full[ind])
+                    ]
+                ).T,
+                "polar_matrix": np.array(
+                    [
+                        r_full,
+                        phi_full
+                    ]
+                ).T,
+                "polar_vector": {
+                    "r": r_,
+                    "phi": phi,
+                    },
+                "polar_area_element": dA
+            }
+    return np.array([r_full[ind]*np.cos(phi_full[ind]), r_full[ind]*np.sin(phi_full[ind])]).T

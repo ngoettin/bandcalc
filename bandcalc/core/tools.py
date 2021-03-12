@@ -158,3 +158,23 @@ def integrate_2d_func_regular_grid(func_vals, grid_points):
     # Integrate
     integral = np.sum(func_vals)*dA
     return integral
+
+def solve_triangle_ssa(side1, side2, angle):
+    """
+    Solve ssa triangle problem for the third side.
+
+    :param side1: first side
+    :param side2: second side
+    :param angle: angle
+
+    :type side1: float
+    :type side2: float
+    :type angle: float
+
+    :rtype: float
+    """
+
+    return {
+            "+": side2*np.cos(angle) + np.sqrt(side1**2 - side2**2*np.sin(angle)**2),
+            "-": side2*np.cos(angle) - np.sqrt(side1**2 - side2**2*np.sin(angle)**2),
+            }
