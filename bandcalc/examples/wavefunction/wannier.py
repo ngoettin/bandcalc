@@ -53,18 +53,23 @@ elif potential == "off":
     potential_matrix = bandcalc.calc_potential_matrix(rec_moire_lattice)
 
 ## Calculate eigenstates for every k point in the MBZ
-k_points = bandcalc.generate_monkhorst_pack_set(rec_m, 40).astype(np.float32)
+k_points = bandcalc.generate_monkhorst_pack_set(rec_m, 20).astype(np.float32)
 hamiltonian = bandcalc.calc_hamiltonian(rec_moire_lattice, potential_matrix, mass)
 
 # Real space moire lattice vectors
 moire_lattice = bandcalc.generate_lattice_by_shell(m, shells)
 
 # Wannier functions should be centered around potential minima
-moire_pot_lattice = moire_lattice + np.array([m[0, 0], m[0, 1]*1/3])
+potential_shift = np.array([m[0, 0], m[0, 1]*1/3])
+print(f"Potential shift: {potential_shift}")
+
+R0 = potential_shift
+R1 = m[0]+potential_shift
+R2 = 2*m[0]+potential_shift
 
 ## Calculate the wannier function
-R = moire_pot_lattice[3].astype(np.float32)
-r = 3*bandcalc.generate_monkhorst_pack_set(m, 60)+R
+R = R0
+r = 4*bandcalc.generate_monkhorst_pack_set(m, 80)#+R
 
 wannier_function = bandcalc.calc_wannier_function_gpu(
         hamiltonian, k_points, rec_moire_lattice, r, R, band_index=energy_level)
@@ -75,7 +80,7 @@ if mode == "3d":
 elif mode == "2d":
     fig, ax = plt.subplots()
     contour = ax.tricontourf(r[:,0], r[:,1], np.abs(wannier_function), alpha=0.8)
-    bandcalc.plot_lattice(ax, bandcalc.generate_lattice_by_shell(m, 1), "ko")
+    bandcalc.plot_lattice(ax, bandcalc.generate_lattice_by_shell(m, 4), "k.")
     ax.plot(R[0], R[1], "ro")
     ax.set_xlabel("nm")
     ax.set_ylabel("nm")
