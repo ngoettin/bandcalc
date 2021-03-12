@@ -1,3 +1,4 @@
+import math
 import cmath
 
 import cupy as cp
@@ -310,7 +311,7 @@ def calc_moire_potential_reciprocal(reciprocal_space_points, real_space_points, 
     return integral/len(real_space_points)
 
 @cuda.jit(device=True)
-def _wannier_summand_gpu(c_alpha, Q, GM, r, R):
+def _wannier_summand_gpu_real(c_alpha, Q, GM, r, R):
     r"""
     Calculate a summand
 
@@ -318,7 +319,7 @@ def _wannier_summand_gpu(c_alpha, Q, GM, r, R):
         c^{\alpha}_{\mathbf{Q}-\mathbf{G}^{\text{M}}}\text{e}^{-\text{i}
         \mathbf{G}^{\text{M}}\mathbf{r}}\text{e}^{-\text{i}\mathbf{Q}(\mathbf{r}-\mathbf{R}}
 
-    for the wannier function.
+    for the wannier function (real part).
     """
 
     return (c_alpha
@@ -332,10 +333,35 @@ def _wannier_summand_gpu(c_alpha, Q, GM, r, R):
                     Q[0]*(r[0]-R[0]) + Q[1]*(r[1]-R[1])
                     )
                 )
-            )
+            ).real
+
+@cuda.jit(device=True)
+def _wannier_summand_gpu_imag(c_alpha, Q, GM, r, R):
+    r"""
+    Calculate a summand
+
+    ..math::
+        c^{\alpha}_{\mathbf{Q}-\mathbf{G}^{\text{M}}}\text{e}^{-\text{i}
+        \mathbf{G}^{\text{M}}\mathbf{r}}\text{e}^{-\text{i}\mathbf{Q}(\mathbf{r}-\mathbf{R}}
+
+    for the wannier function (imaginary part).
+    """
+
+    return (c_alpha
+            *cmath.exp(
+                -1j*(
+                    GM[0]*r[0] + GM[1]*r[1]
+                    )
+                )
+            *cmath.exp(
+                1j*(
+                    Q[0]*(r[0]-R[0]) + Q[1]*(r[1]-R[1])
+                    )
+                )
+            ).imag
 
 @cuda.jit
-def _wannier_gpu(res, c_alpha, Q, GM, r, R):
+def _wannier_gpu(res_real, res_imag, c_alpha, Q, GM, r, R):
     r"""
     Calculate :py:func`summand` for every :math:`\mathbf{Q}` and
     :math:`\mathbf{G}^\text{M}`.
@@ -343,8 +369,9 @@ def _wannier_gpu(res, c_alpha, Q, GM, r, R):
 
     i, j, k = cuda.grid(3) #pylint: disable=E0633,E1121
 
-    if i < res.shape[0] and j < res.shape[1] and k < res.shape[2]:
-        res[i, j, k] = _wannier_summand_gpu(c_alpha[j, k], Q[j], GM[k], r[i], R)
+    if i < r.shape[0] and j < Q.shape[0] and k < GM.shape[0]:
+        cuda.atomic.add(res_real, i, _wannier_summand_gpu_real(c_alpha[j, k], Q[j], GM[k], r[i], R)) # pylint: disable=E1121
+        cuda.atomic.add(res_imag, i, _wannier_summand_gpu_imag(c_alpha[j, k], Q[j], GM[k], r[i], R)) # pylint: disable=E1121
 
 def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors, r, R,
         band_index=0, c_alpha=None):
@@ -371,16 +398,22 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     :param reciprocal_lattice_vectors: reciprocal lattice vectors
     :param r: array of points in real space to calculate the wannier function on
     :param R: real space lattice vector around which the wannier function is centered
+    :param band_index: :math:`\alpha`
+    :param c_alpha: if you already calculated the bloch function coefficients, use them here
 
     :type hamiltonian: function
     :type k_points: numpy.ndarray
     :type reciprocal_lattice_vectors: numpy.ndarray
     :type r: numpy.ndarray
     :type R: numpy.ndarray
+    :type band_index: int
+    :type c_alpha: numpy.ndarray
+
+    :rtype: numpy.ndarray
     """
 
     dtype = np.float32
-    
+
     if c_alpha is None:
         # Calculate Bloch coefficients c_alpha at every k point
         c_alpha = []
@@ -396,25 +429,27 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     r_gpu = cuda.to_device(r.astype(dtype))
     R_gpu = cuda.to_device(R.astype(dtype))
 
-    # Prepare result array and thread topology
-    result_gpu = cuda.device_array((len(r), len(k_points),
-        len(reciprocal_lattice_vectors)), dtype=np.complex64)
+    result_real_gpu = cuda.to_device(np.zeros((len(r))))
+    result_imag_gpu = cuda.to_device(np.zeros((len(r))))
     threadsperblock = (32, 32, 1)
-    blockspergrid = tuple(
-            result_gpu.shape[i] // threadsperblock[i]
-            if result_gpu.shape[i] % threadsperblock[i] == 0
-            else result_gpu.shape[i] // threadsperblock[i] + 1 for i in range(3)
+    blockspergrid = (
+            math.ceil(len(r) / threadsperblock[0]),
+            math.ceil(len(k_points) / threadsperblock[1]),
+            math.ceil(len(reciprocal_lattice_vectors) / threadsperblock[2])
         )
 
     # Calculate wannier components on GPU
-    _wannier_gpu[blockspergrid, threadsperblock](result_gpu, c_alpha_gpu, #pylint: disable=E1136
-            k_points_gpu, reciprocal_lattice_vectors_gpu, r_gpu, R_gpu)
+    _wannier_gpu[blockspergrid, threadsperblock](
+            result_real_gpu, result_imag_gpu, c_alpha_gpu,
+            k_points_gpu, reciprocal_lattice_vectors_gpu, r_gpu, R_gpu
+    )
 
     # Get result and free GPU memory
-    result = result_gpu.copy_to_host()
-    del result_gpu
+    result_real = result_real_gpu.copy_to_host()
+    result_imag = result_imag_gpu.copy_to_host()
+    del result_real_gpu, result_imag_gpu
 
-    wannier_function = np.sum(result, axis=(1,2))
+    wannier_function = result_real + 1j*result_imag
 
     # Normalize wannier function
     integral = integrate_2d_func_regular_grid(np.abs(wannier_function)**2, r)
