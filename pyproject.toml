@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "bandcalc"
+version = "0.1.0"
+description = "Calculate bandstructures for different lattices"
+authors = ["Your Name <you@example.com>"]
+license = "GPLv3"
+
+[tool.poetry.dependencies]
+python = "3.9"
+numpy = "^1.20.1"
+scipy = "^1.6.2"
+cupy-cuda112 = "^8.6.0"
+matplotlib = "^3.3.4"
+numba = "^0.53.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
