@@ -12,6 +12,9 @@ scipy = "^1.6.2"
 cupy-cuda112 = "^8.6.0"
 matplotlib = "^3.3.4"
 numba = "^0.53.0"
+pyqtgraph = "^0.12.0"
+PyOpenGL = "^3.1.5"
+PySide2 = "^5.15.2"
 
 [tool.poetry.dev-dependencies]
 
