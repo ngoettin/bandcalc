@@ -477,7 +477,7 @@ def calc_mu_of_n_boson(bandstructure, k_points, temperature):
         (E_{\mathbf{Q}}^\gamma - \mu) - 1)} \text{d}^2Q
 
     .. note::
-        This function returns a function, which expects the *logarithm* of :math:`n` as
+        This function returns a function, which expects the *logarithm* (base 10) of :math:`n` as
         the input.
 
     :param bandstructure: enough bands of the bandstructure for the sum to
