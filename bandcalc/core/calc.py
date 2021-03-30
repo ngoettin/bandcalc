@@ -5,6 +5,7 @@ import cupy as cp
 import numpy as np
 import scipy.constants
 import scipy.spatial
+import scipy.interpolate
 
 #import ray
 #ray.init(address='auto', _redis_password='5241590000000000', ignore_reinit_error=True)
@@ -12,10 +13,16 @@ import scipy.spatial
 from numba import cuda
 
 from .generate import generate_k_path
-from .tools import find_vector_index, find_nearest_delaunay_neighbours, integrate_2d_func_regular_grid
+from .tools import (
+        find_vector_index,
+        find_nearest_delaunay_neighbours,
+        integrate_2d_func_regular_grid,
+        get_volume_element_regular_grid,
+    )
 
 hbar = scipy.constants.physical_constants["Planck constant over 2 pi"][0]
 e = scipy.constants.physical_constants["elementary charge"][0]
+k_B_eV = scipy.constants.physical_constants["Boltzmann constant in eV/K"][0]
 
 def eps_0(k, G, m):
     r"""
@@ -455,3 +462,65 @@ def calc_wannier_function_gpu(hamiltonian, k_points, reciprocal_lattice_vectors,
     integral = integrate_2d_func_regular_grid(np.abs(wannier_function)**2, r)
     wannier_function = wannier_function/np.sqrt(integral)
     return wannier_function
+
+def _bose_einstein_distribution(bandstructure, beta, mu):
+    return 1/(np.exp(beta*(bandstructure[..., None] - mu)) - 1)
+
+def calc_mu_of_n_boson(bandstructure, k_points, temperature):
+    r"""
+    Calculates the density :math:`n` of bosons in the lattice, depending on
+    the chemical potential :math:`\mu` (see equation below)  and fits the relation inversely in order
+    to get a relation :math:`\mu(n)`.
+
+    .. math::
+        n_{\beta}(\mu) = \sum_{\gamma} \int_{\text{MBZ}} \frac{1}{\exp(\beta
+        (E_{\mathbf{Q}}^\gamma - \mu) - 1)} \text{d}^2Q
+
+    .. note::
+        This function returns a function, which expects the *logarithm* of :math:`n` as
+        the input.
+
+    :param bandstructure: enough bands of the bandstructure for the sum to
+        converge sufficiently. This should be sampled over the whole MBZ. Must be in meV.
+    :param k_points: the points in reciprocal space, the bandstructure was calculated on
+    :param temperature: the temperature of the system
+
+    :type bandstructure: numpy.ndarray
+    :type k_points: numpy.ndarray
+    :type temperature: float
+
+    :rtype: function
+    """
+
+    if temperature<0.0001:
+        print("Warning: Temperatures lower than 1e-4K might lead to numerical"\
+                " inaccuracies for mu close to the minimum energy of the bandstructure")
+
+    beta = 1/(k_B_eV*temperature*1e3) # in 1/meV
+
+    # Get a number just below the minimum of the bandstructure
+    upper_limit_mu = bandstructure.min() - (np.abs(bandstructure.min()) * 1e-9)
+
+    # Calculate a reasonable lower limit for mu, depending on the temperature.
+    # the factor is guessed empirically, but seems to work well
+    factor = -(1 + 10.**(np.floor(np.log10(temperature)) - 1))
+    lower_limit_mu = factor * np.abs(upper_limit_mu)
+
+    # Compose a mu grid for the n, which is fine for mu close to the
+    # minimum energy of the bandstructure and coarse for mu far away
+    interval_length = upper_limit_mu - lower_limit_mu
+    mu = np.hstack(
+            [
+                np.linspace(lower_limit_mu, lower_limit_mu+interval_length*4/5, num=50),
+                np.linspace(lower_limit_mu+interval_length*4/5, upper_limit_mu, num=500)
+            ]
+        )
+
+    # Calculate the particle densities for each mu
+    dA = get_volume_element_regular_grid(k_points)
+    n = np.sum(_bose_einstein_distribution(bandstructure, beta, mu), axis=(0,1)) * dA
+
+    # Interpolate the relation
+    mu_of_n = scipy.interpolate.interp1d(np.log10(n), mu, fill_value="extrapolate")
+
+    return mu_of_n
