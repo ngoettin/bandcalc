@@ -59,7 +59,7 @@ k_names = [r"$\kappa$", r"$\gamma$", r"$\kappa$"]
 # Calculate the band structure (no potential)
 hamiltonian = bandcalc.calc_hamiltonian(rec_moire_lattice, potential_matrix, mass)
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, N, hamiltonian))
+        bandcalc.calc_bandstructure(path, hamiltonian))
 
 #np.save("bandstructure_moire_{}deg_in_{}eV.npy".format(angle, prefix), bandstructure)
 

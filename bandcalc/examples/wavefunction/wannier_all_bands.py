@@ -65,10 +65,11 @@ points = np.array([
     sorted_vertices[1],
     sorted_vertices[3]])
 k_names = [r"$\gamma$", r"$\kappa'$", r"$\kappa''$", r"$\kappa$"]
+path = bandcalc.generate_k_path(points, N)
 
 ## Calculate bandstructure
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, N, hamiltonian))
+        bandcalc.calc_bandstructure(path, hamiltonian))
 
 sorted_bandstructure = np.sort(bandstructure)
 

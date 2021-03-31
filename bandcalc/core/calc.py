@@ -115,25 +115,22 @@ def calc_potential_matrix_from_coeffs(lattice, coeffs):
         potential_matrix[i, neighbours] = coefficients
     return potential_matrix
 
-def calc_bandstructure(k_points, N, hamiltonian):
+def calc_bandstructure(k_points, hamiltonian):
     """
-    Calculate the band structure of a hamiltonian along a given k path with N samples
+    Calculate the band structure of a hamiltonian on given points in reciprocal space
 
     :param k_points: k points
-    :param N: number of samples
     :param hamiltonian: the hamiltonian to calculate the bandstructure with
         (as a function of k)
 
     :type k_points: numpy.ndarray
-    :type N: int
     :type hamiltonian: function
 
     :rtype: numpy.ndarray
     """
 
-    path = generate_k_path(k_points, N)
     eig_vals = np.array(
-            [np.linalg.eigvals(hamiltonian(k)) for k in path]
+            [np.linalg.eigvals(hamiltonian(k_point)) for k_point in k_points]
     )
     return eig_vals
 
@@ -502,7 +499,7 @@ def calc_mu_of_n_boson(bandstructure, k_points, temperature):
     upper_limit_mu = bandstructure.min() - (np.abs(bandstructure.min()) * 1e-9)
 
     # Calculate a reasonable lower limit for mu, depending on the temperature.
-    # the factor is guessed empirically, but seems to work well
+    # The factor is guessed empirically, but seems to work well
     factor = -(1 + 10.**(np.floor(np.log10(temperature)) - 1))
     lower_limit_mu = factor * np.abs(upper_limit_mu)
 

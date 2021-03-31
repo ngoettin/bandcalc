@@ -72,8 +72,9 @@ k_names = [r"$\gamma$", r"$\kappa'$", r"$\kappa''$", r"$\kappa$"]
 # original paper, but that is most likely just a small difference in
 # some parameters, like the lattice constants
 hamiltonian = bandcalc.calc_hamiltonian(rec_moire_lattice, potential_matrix, mass)
+k_points = bandcalc.generate_k_path(points, N)
 bandstructure, prefix = bandcalc.get_unit_prefix(
-        bandcalc.calc_bandstructure(points, N, hamiltonian))
+        bandcalc.calc_bandstructure(k_points, hamiltonian))
 
 ## Fit the Hubbard (Tight Binding) Hamiltonian
 # Construct function
