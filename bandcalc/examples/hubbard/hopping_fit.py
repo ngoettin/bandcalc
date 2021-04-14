@@ -78,16 +78,17 @@ bandstructure, prefix = bandcalc.get_unit_prefix(
 
 ## Fit the Hubbard (Tight Binding) Hamiltonian
 # Construct function
-number_nearest_neighbours = 3
+number_nearest_neighbours = 2
 triangulation = Delaunay(moire_lattice)
 zero_vec_ind = bandcalc.find_vector_index(moire_lattice, [0, 0])
 nn = np.vstack([moire_lattice[bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
-       only_k_shell=True, include_point_index=False)] for k in [1,2,3]])
+       only_k_shell=True, include_point_index=False)] for k in range(1, number_nearest_neighbours+1)])
 t_lengths = [len(bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k, 
-       only_k_shell=True, include_point_index=False)) for k in [1,2,3]]
+       only_k_shell=True, include_point_index=False)) for k in range(1, number_nearest_neighbours+1)]
 
-def energy_function(k, t1, t2, t3, offset):
-   t = np.hstack([[t1]*t_lengths[0], [t2]*t_lengths[1], [t3]*t_lengths[2]])
+def energy_function(k, t1, t2, offset):
+#   t = np.hstack([[t1]*t_lengths[0], [t2]*t_lengths[1], [t3]*t_lengths[2]])
+   t = np.hstack([[t1]*t_lengths[0], [t2]*t_lengths[1]])
    energy = np.real(np.dot(t, np.exp(-1j*np.dot(k, nn.T).T)))
    return energy + offset
 

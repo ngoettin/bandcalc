@@ -79,16 +79,16 @@ for angle in np.linspace(1, 3, num=10):
 
     ## Fit the Hubbard (Tight Binding) Hamiltonian
     # Construct function
-    number_nearest_neighbours = 3
+    number_nearest_neighbours = 2
     triangulation = Delaunay(moire_lattice)
-    zero_vec_ind = bandcalc.find_vector_index(moire_lattice, [0, 0])
-    nn = np.vstack([moire_lattice[bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
-           only_k_shell=True, include_point_index=False)] for k in [1,2,3]])
-    t_lengths = [len(bandcalc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
-           only_k_shell=True, include_point_index=False)) for k in [1,2,3]]
+    zero_vec_ind = bc.find_vector_index(moire_lattice, [0, 0])
+    nn = np.vstack([moire_lattice[bc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
+           only_k_shell=True, include_point_index=False)] for k in range(1, number_nearest_neighbours+1)])
+    t_lengths = [len(bc.find_k_order_delaunay_neighbours(zero_vec_ind, triangulation, k,
+           only_k_shell=True, include_point_index=False)) for k in range(1, number_nearest_neighbours+1)]
 
-    def energy_function(k, t1, t2, t3, offset):
-       t = np.hstack([[t1]*t_lengths[0], [t2]*t_lengths[1], [t3]*t_lengths[2]])
+    def energy_function(k, t1, t2, offset):
+       t = np.hstack([[t1]*t_lengths[0], [t2]*t_lengths[1]])
        energy = np.real(np.dot(t, np.exp(-1j*np.dot(k, nn.T).T)))
        return energy + offset
 
@@ -104,7 +104,7 @@ for angle in np.linspace(1, 3, num=10):
     print(angle)
 
 res = np.array(res)
-plt.plot(list(m_lens.values()), res[:,1:4]*1e3)
+plt.plot(list(m_lens.values()), res[:,1:3]*1e3)
 plt.legend([rf"$t_{i}$" for i in [1,2,3]])
 plt.xlabel("$a_M$ in nm")
 plt.ylabel("t in meV")
