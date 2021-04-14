@@ -6,9 +6,7 @@ authors = ["Your Name <you@example.com>"]
 license = "GPLv3"
 
 [tool.poetry.dependencies]
-python = "3.9"
-numpy = "^1.20.1"
-scipy = "^1.6.2"
+python = "3.8.8"
 cupy-cuda112 = "^8.6.0"
 matplotlib = "^3.3.4"
 numba = "^0.53.0"
@@ -17,8 +15,12 @@ PyOpenGL = "^3.1.5"
 PySide2 = "^5.15.2"
 Sphinx = "3.5.2"
 furo = "^2021.3.20-beta.31"
+numpy = "^1.20.2"
+scipy = "^1.6.2"
+ray = "^1.2.0"
 
 [tool.poetry.dev-dependencies]
+ipython = "^7.22.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
