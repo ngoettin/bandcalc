@@ -1,15 +1,42 @@
 import os
 import pickle
+import argparse
+import configparser
 
 import ray
 import numpy as np
-import scipy.integrate
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 import bandcalc as bc
 
 ray.init(address='auto', _redis_password='5241590000000000')
+
+parser = argparse.ArgumentParser(description="Calculate hubbard intrasite terms")
+parser.add_argument("--config", type=str,
+        default="hubbard.conf", help="location of the configuration file")
+args = parser.parse_args()
+config_file = args.config
+
+config = configparser.ConfigParser()
+config.read(config_file)
+
+particle_type = config["general"]["particle_type"]
+material_system = config["general"]["material_system"]
+stacking = config["general"]["stacking"]
+
+system_str = f"{material_system.replace('/', '_')}_{stacking}_stacking_{particle_type}"
+
+D = bc.constants.layer_distance[particle_type][material_system]
+num_points = 40 # for integration (each dimension)
+
+e = bc.constants.physical_constants["elementary charge"][0]
+eps = bc.constants.physical_constants["vacuum electric permittivity"][0]
+
+base_path = os.path.join("bandcalc", "examples" , "hubbard")
+with open(os.path.join(base_path, "wannier_pickle", f"moire_vector_lengths_{system_str}.pickle"), "rb") as f:
+    m_lens = pickle.load(f)
+with open(os.path.join(base_path, "wannier_pickle", f"potential_minima_{system_str}.pickle"), "rb") as f:
+    potential_minima = pickle.load(f)
 
 def U_integrand(r_tilde, r_, R, R_, D, wannier_abs_sqr):
     omega_prime = r_
@@ -41,21 +68,9 @@ def calc_integral(R_prime, r_max, R0, wannier_spline):
     r_full = np.repeat(r_, r_nums, axis=0)
     return np.sum(U_integrand(r_tilde_full, r_full, R0, R_prime, D, wannier_spline)*dV)
 
-D = 3#nm
-num_points = 60 # for integration (each dimension)
-
-e = bc.constants.physical_constants["elementary charge"][0]
-eps = bc.constants.physical_constants["vacuum electric permittivity"][0]
-
-base_path = os.path.join("bandcalc", "examples" , "misc")
-with open(os.path.join(base_path, "wannier_pickle", "moire_vector_lengths.pickle"), "rb") as f:
-    m_lens = pickle.load(f)
-with open(os.path.join(base_path, "wannier_pickle", "potential_minima.pickle"), "rb") as f:
-    potential_minima = pickle.load(f)
-
 @ray.remote
 def calc_integrals(angle):
-    with open(os.path.join(base_path, "wannier_pickle", f"wannier_{angle:.2f}_deg.pickle"), "rb") as f:
+    with open(os.path.join(base_path, "wannier_pickle", f"wannier_{system_str}_{angle:.2f}_deg.pickle"), "rb") as f:
         wannier_spline = pickle.load(f)
     
     angle_str = f"{angle:.2f}"
@@ -71,6 +86,7 @@ def calc_integrals(angle):
     return m_len, U0, U1, U2
 
 res = np.array(ray.get([calc_integrals.remote(angle) for angle in np.linspace(1, 3, num=10)]))
+np.save(f"U0_meV_{system_str}.npy", res[:, 1]*e/eps*1e9/4/np.pi*1e3)
 
 fig, ax = plt.subplots()
 lines = plt.plot(res[:,0], res[:, 1:]*e/eps*1e9/4/np.pi*1e3)#meV
