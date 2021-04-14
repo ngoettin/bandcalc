@@ -87,4 +87,4 @@ for angle in np.linspace(1, 3, num=10):
 
 res = np.array(res)
 print(res)
-np.save(f"mu_{system_str}_{filling}_filling_{temperature}K.npy", res)
+np.save(f"mu_meV_{system_str}_{filling}_filling_{temperature}K.npy", res)
