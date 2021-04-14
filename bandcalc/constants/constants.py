@@ -14,8 +14,9 @@ unit_prefixes = {
 # in nm
 layer_distance = {
         "exciton": { # https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.035306
-            "MoS2/WS2": 0.615,
-            "MoSe2/WSe2": 0.647,
+            # +0.3nm is an arbitrary estimation for layer thickness and has to be verified
+            "MoS2/WS2": 0.615 + 0.3,
+            "MoSe2/WSe2": 0.647 + 0.3,
         },
         "electron": { # https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.121.026402
             "MoSe2/WSe2": 3,
