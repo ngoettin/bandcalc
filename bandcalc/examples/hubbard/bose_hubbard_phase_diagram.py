@@ -46,7 +46,9 @@ mu_range = np.linspace(0, np.abs(mu/U0).max()*1.1, steps_mu)
 J_range = np.linspace(0, np.abs(t1/U0).max()*1.1, steps_J)
 
 q = np.arange(n_max)
-b = np.diag(np.sqrt(q[1:]), k=-1)
+b = np.diag(np.sqrt(q[1:]), k=1)
+b_dagger = b.T
+n = b_dagger @ b
 
 @nb.njit
 def hamiltonian(phi, mu, J):
@@ -59,23 +61,23 @@ def hamiltonian(phi, mu, J):
 
 @nb.njit(parallel=True)
 def calc_phi():
-    res = np.zeros((steps_mu, steps_J))
+    res = np.zeros((2, steps_mu, steps_J))
     count = 0
     for i in nb.prange(steps_mu):
         mu = mu_range[i]
-        sub_res = []
-        for J in J_range:
+        for j in range(steps_J):
+            J = J_range[j]
             phi = 1
             phi_old = np.inf
             while np.abs(phi-phi_old)>1e-4:
                 H = hamiltonian(phi, mu, J)
-                w, v = np.linalg.eigh(H)
+                w, v = np.linalg.eig(H)
                 ground_state = v[:,np.argmin(w)]
 
                 phi_old = phi
                 phi = ground_state @ b @ ground_state
-            sub_res.append(phi)
-        res[i] = sub_res
+            res[0,i,j] = phi
+            res[1,i,j] = ground_state @ n @ ground_state
         if not count%10:
             print("ca.", np.round(count/steps_mu*4*100, 2), "%")
         count += 1
@@ -86,7 +88,7 @@ def calc_phase_border_J(m, mu):
     return -1/z/(m/(U*(m-1)-mu) + (m+1)/(mu-U*m))
 
 res = calc_phi()
-plt.imshow(res, extent=[J_range.min(), J_range.max(),
+plt.imshow(res[0], extent=[J_range.min(), J_range.max(),
     mu_range.min(), mu_range.max()], aspect="auto",
     origin="lower")
 
@@ -97,4 +99,14 @@ plt.ylim([mu_range.min(), mu_range.max()])
 plt.xlabel(r"$J/U$")
 plt.ylabel(r"$\mu/U$")
 plt.colorbar(label=r"$\phi$")
+
+plt.figure()
+plt.imshow(res[1], extent=[J_range.min(), J_range.max(),
+    mu_range.min(), mu_range.max()], aspect="auto",
+    origin="lower", cmap="turbo")
+plt.xlim([J_range.min(), J_range.max()])
+plt.ylim([mu_range.min(), mu_range.max()])
+plt.xlabel(r"$J/U$")
+plt.ylabel(r"$\mu/U$")
+plt.colorbar(label=r"$n$")
 plt.show()
