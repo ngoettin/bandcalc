@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
 
+from matplotlib.patches import Patch
+
 parser = argparse.ArgumentParser(description="Calculate the Bose-Hubbard phase "\
         "diagram and plot the curve of the reachable parameter set in it.")
 parser.add_argument("--config", type=str,
@@ -86,5 +88,8 @@ plt.gca().yaxis.set_visible(False)
 plt.xlim([1, 3])
 plt.ylim([-0.5, 0.5])
 plt.xlabel(r"twist angle $\theta$ in deg")
-plt.legend(["Supra fluid", "Mott isolator"])
+plt.legend(
+    [Patch(color=colors[0]), Patch(color=colors[1])],
+    ["Supra fluid", "Mott isolator"]
+)
 plt.show()
