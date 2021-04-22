@@ -1,5 +1,6 @@
 import math
 import cmath
+import itertools
 
 import cupy as cp
 import numpy as np
@@ -12,7 +13,6 @@ import scipy.interpolate
 
 from numba import cuda
 
-from .generate import generate_k_path
 from .tools import (
         find_vector_index,
         find_nearest_delaunay_neighbours,
@@ -313,6 +313,61 @@ def calc_moire_potential_reciprocal(reciprocal_space_points, real_space_points, 
             ))*moire_potential_pointwise[..., None]
     integral = integrand.sum(axis=0)
     return integral/len(real_space_points)
+
+def calc_moire_potential_minimum_position(rec_moire_first_shell, V, psi):
+    r"""
+    Calculate the position of one minimum of a moiré potential constructed
+    like in the function :py:func:`calc_moire_potential`.
+
+    The coefficients :math:`V_j` are
+
+    .. math::
+        V_j = V\text{e}^{\text{i}\psi}
+
+    where :math:`V_1 = V_3 = V_5, V_2 = V_4 = V_6, V_1 = V_2^*`
+
+    :param rec_moire_first_shell: the first shell of vectors in the reciprocal
+        moiré lattice, sorted by angle.
+    :param V: :math:`V`
+    :param psi: :math:`\psi` in radians
+
+    :type rec_moire_first_shell: numpy.ndarray
+    :type V: float
+    :type psi: float
+
+    :rtype: numpy.ndarray
+    """
+
+    def _is_minimum(r, rec_moire_first_shell, V, psi):
+        """
+        Use analytically computed second derivate to identify minimum.
+        """
+        x = lambda i, r: np.exp(1j*psi)*np.exp(1j*np.dot(rec_moire_first_shell[i], r))
+        second_derivative = -V * (
+            np.dot(rec_moire_first_shell[0], rec_moire_first_shell[0]) * (
+                x(0, r) + np.conj(x(0, r))
+            ) +
+            np.dot(rec_moire_first_shell[1], rec_moire_first_shell[1]) * (
+                x(1, r) + np.conj(x(1, r))
+            ) +
+            np.dot(rec_moire_first_shell[2], rec_moire_first_shell[2]) * (
+                x(2, r) + np.conj(x(2, r))
+            )
+        )
+
+        if not np.isreal(second_derivative):
+            print("Warning: Second derivative might have imaginary part. "\
+                    f"Check for yourself: {second_derivative}. Will take real part.")
+        return np.real(second_derivative) > 0
+
+    A = np.array([rec_moire_first_shell[0] + rec_moire_first_shell[1],
+        rec_moire_first_shell[2] + rec_moire_first_shell[1]])
+
+    for n1, n2 in itertools.product(range(-2, 3, 2), range(-2, 3, 2)):
+        solution = np.linalg.solve(A, [n1*np.pi, n2*np.pi])
+        if _is_minimum(solution, rec_moire_first_shell, V, psi):
+            return solution
+
 
 @cuda.jit(device=True)
 def _wannier_summand_gpu_real(c_alpha, Q, GM, r, R):

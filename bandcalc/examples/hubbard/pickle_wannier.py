@@ -74,6 +74,14 @@ for angle in np.linspace(1, 3, num=10):
     m = bc.generate_reciprocal_lattice_basis(rec_m)
     m_len = np.abs(m[0].view(complex)[0])
 
+    # Calculate first shell reciprocal moire vectors
+    G = bc.generate_twisted_lattice_by_shell(b1, b2, angle, 1)
+    GT = G[0]
+    GB = G[1]
+    GM = GT-GB
+    GM = np.array(sorted(GM, key=lambda x: np.abs(x.view(complex))))[1:]
+    GM = np.array(sorted(GM, key=lambda x: np.angle(x.view(complex))))
+
     # Moire potential coefficients
     Vj = np.array([V if i%2 else np.conjugate(V) for i in range(1, 7)])
     potential_matrix = bc.calc_potential_matrix_from_coeffs(rec_moire_lattice, Vj)
@@ -83,7 +91,7 @@ for angle in np.linspace(1, 3, num=10):
     hamiltonian = bc.calc_hamiltonian(rec_moire_lattice, potential_matrix, mass)
 
     # Wannier functions should be centered around potential minima
-    potential_shift = np.array([m[0, 0], m[0, 1]*1/3])
+    potential_shift = bc.calc_moire_potential_minimum_position(GM, np.abs(V), np.angle(V))
     print(f"Potential shift: {potential_shift}")
 
     R0 = potential_shift
