@@ -158,14 +158,15 @@ def plot_matrix(matrix):
     """
 
     _, ax = plt.subplots()
-    matrix = np.flipud(matrix)
-    ax.pcolor(matrix, ec="k", lw=2)
-    ax.set_xticks(np.arange(matrix.shape[1])+0.5)
-    ax.set_xticklabels(range(matrix.shape[1]))
-    ax.set_yticks(np.arange(matrix.shape[0])+0.5)
-    ax.set_yticklabels(reversed(range(matrix.shape[0])))
+    ax.pcolor(matrix, ec="#AAA", lw=0.5)
     ax.xaxis.tick_top()
+    ax.set_xticks(np.arange(matrix.shape[1])+0.5)
+    ax.set_yticks(np.arange(matrix.shape[0])+0.5)
+    ax.set_xticklabels(range(matrix.shape[1]))
+    ax.set_yticklabels(range(matrix.shape[0]))
     ax.axis("scaled")
+    ax.invert_yaxis()
+    ax.format_coord = lambda x, y: f"({int(y)}, {int(x)}): {matrix[int(x), int(y)]:.2f}"
 
 def plot_trisurface_3d(x, y, z, faces="Delaunay", autoscale_z=True):
     """
