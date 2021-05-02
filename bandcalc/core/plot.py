@@ -188,7 +188,7 @@ def plot_trisurface_3d(x, y, z, faces="Delaunay", autoscale_z=True):
     view = gl.GLViewWidget()
 
     if autoscale_z:
-        z = z/z.max()*max(x.max(), y.max())
+        z = z/(z.max()-z.min())*max(x.max(), y.max())
 
     vertices = np.vstack([x, y, z]).T
     if faces == "Delaunay":
